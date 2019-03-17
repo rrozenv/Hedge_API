@@ -11,10 +11,18 @@
   "license": "ISC",
   "dependencies": {
     "@types/config": "0.0.34",
+    "@types/joi": "^14.3.2",
+    "@types/jsonwebtoken": "^8.3.2",
+    "@types/mongoose": "^5.3.22",
     "@types/node": "^11.11.3",
+    "@types/superagent": "^4.1.1",
     "config": "^3.0.1",
     "debug": "^4.1.1",
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "joi": "^14.3.1",
+    "jsonwebtoken": "^8.5.0",
+    "mongoose": "^5.4.19",
+    "superagent": "^4.1.0"
   },
   "devDependencies": {
     "@types/debug": "^4.1.2",

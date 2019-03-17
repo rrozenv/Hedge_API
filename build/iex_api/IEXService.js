@@ -37,60 +37,39 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var express_1 = __importDefault(require("express"));
-var stock_model_1 = require("../models/stock.model");
-var IEXService_1 = __importDefault(require("../iex_api/IEXService"));
-var service = new IEXService_1.default();
-var router = express_1.default.Router({});
-// GET 
-router.get('/', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var stocks, quotes, updatedStocks;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, stock_model_1.StockModel.find()];
-            case 1:
-                stocks = _a.sent();
-                return [4 /*yield*/, service.fetchQuotes(stocks.map(function (s) { return s.symbol; }), ['quote'])];
-            case 2:
-                quotes = _a.sent();
-                updatedStocks = stocks.map(function (stock, _) {
-                    var quote = quotes.filter(function (quote) { return quote.symbol == stock.symbol; }).pop();
-                    if (quote !== undefined)
-                        stock.quote = quote;
-                    return stock;
-                });
-                res.send(updatedStocks);
-                return [2 /*return*/];
-        }
-    });
-}); });
-// POST
-router.post('/', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var _a, symbol, companyName, stock;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _a = req.body, symbol = _a.symbol, companyName = _a.companyName;
-                stock = new stock_model_1.StockModel({
-                    symbol: symbol,
-                    companyName: companyName,
-                    imageUrl: '',
-                    sector: 'technology',
-                    quote: {
-                        symbol: symbol,
-                        companyName: companyName,
-                        latestPrice: 100.0,
-                        changePercent: 2.0
-                    }
-                });
-                return [4 /*yield*/, stock.save()];
-            case 1:
-                _b.sent();
-                res.send(stock);
-                return [2 /*return*/];
-        }
-    });
-}); });
-exports.default = router;
+var config_1 = __importDefault(require("config"));
+var superagent_1 = __importDefault(require("superagent"));
+var quote_model_1 = require("../models/quote.model");
+var IEXService = /** @class */ (function () {
+    function IEXService() {
+    }
+    IEXService.prototype.fetchQuotes = function (tickers, types) {
+        return __awaiter(this, void 0, void 0, function () {
+            var payload;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (tickers.length == 0)
+                            throw 'Tickers length is 0';
+                        return [4 /*yield*/, superagent_1.default
+                                .get(config_1.default.get('iex-base-url') + "/stock/market/batch")
+                                .query({ types: types.join(','), symbols: tickers.join(',') })];
+                    case 1:
+                        payload = _a.sent();
+                        return [2 /*return*/, tickers.map(function (ticker) {
+                                var symbol = ticker.toUpperCase();
+                                return new quote_model_1.QuoteModel({
+                                    symbol: payload.body[symbol].quote.symbol,
+                                    companyName: payload.body[symbol].quote.companyName,
+                                    latestPrice: payload.body[symbol].quote.latestPrice,
+                                    changePercent: payload.body[symbol].quote.changePercent
+                                });
+                            })];
+                }
+            });
+        });
+    };
+    return IEXService;
+}());
+exports.default = IEXService;

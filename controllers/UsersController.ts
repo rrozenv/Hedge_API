@@ -6,29 +6,40 @@ import jwt from 'jsonwebtoken';
 import config from 'config';
 import { UserModel, UserType } from '../models/user.model'
 import IController from '../interfaces/controller.interface';
+import TwilioService from '../services/TwilioService';
 
 class UsersController implements IController {
+    
+    // MARK: - Properties
     public path = '/users';
     public router = express.Router({});
+    private twilio_service: TwilioService;
    
     // MARK: - Constructor
     constructor() {
+      this.twilio_service = new TwilioService();
       this.initializeRoutes();
     }
    
     private initializeRoutes() {
       this.router.post(this.path, this.createUser);
       this.router.post(`${this.path}/login`, this.loginUser);
+      this.router.post(`${this.path}/sendPhoneVerificationCode`, this.sendVerificationCode);
+      this.router.post(`${this.path}/validatePhoneVerificationCode`, this.validateVerificationCode);
     }
    
+    /// ** ---- POST ROUTES ---- **
     // MARK: - Create User
     private createUser = async (req: any, res: any) => {
-        const { error } = this.validateUser(req.body); 
+        // Errors
+        const { error } = this.validateCreate(req.body); 
         if (error) return res.status(400).send(error.details[0].message);
 
+        // Find user if exists
         const { name, phoneNumber, admin } = req.body
         let user = await UserModel.findOne({ phoneNumber: phoneNumber });
 
+        // Create new user if doesn't exist 
         if (!user) { 
             user = new UserModel({ 
                 name: name, 
@@ -38,6 +49,7 @@ class UsersController implements IController {
             await user.save();
         } 
   
+        // Return user 
         const tokenData = this.createAuthToken(user);
         res.header('Set-Cookie', this.createCookie(tokenData));
         res.send(user);
@@ -45,19 +57,36 @@ class UsersController implements IController {
 
     // MARK: - Login User
     private loginUser = async (req: any, res: any) => { 
-        const { phoneNumber } = req.body
+        // Errors
+        const { error } = this.validateLogin(req.body); 
+        if (error) return res.status(400).send(error.details[0].message);
 
+        // Find user
+        const { phoneNumber } = req.body
         let user = await UserModel.findOne({ phoneNumber: phoneNumber });
-      
-        if (!user) { 
-          return res.status(400).send({ message: 'User does not exist.' });
-        } 
+        if (!user) return res.status(400).send({ message: 'User does not exist.' });
         
+        // Return token
         const tokenData = this.createAuthToken(user);
         res.header('Set-Cookie', this.createCookie(tokenData));
         res.send(user);
     } 
 
+    // MARK: - Send phone verification code 
+    private sendVerificationCode = async (req: any, res: any) => { 
+      const { via, country_code, phone_number } = req.body
+      const response = await this.twilio_service.sendVerificationCodeTo(phone_number, country_code, via)
+      res.send(response);
+    }; 
+
+    // MARK: - Validate verification code 
+    private validateVerificationCode = async (req: any, res: any) => { 
+      const { via, country_code, phone_number } = req.body
+      const response = await this.twilio_service.validateVerificationCode(phone_number, country_code, via);
+      res.send(response);
+    }; 
+
+    /// ** ---- HELPER METHODS ---- **
     // MARK: - Auth token creation 
     private createAuthToken = (user: UserType): IToken => { 
         const expiresIn = 60 * 60; // an hour
@@ -73,8 +102,9 @@ class UsersController implements IController {
         return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn}`;
     }
   
+    /// ** ---- VALIDATION ---- **
     // MARK: - User body validation 
-    private validateUser = (user: IUser) => {
+    private validateCreate = (user: IUser) => {
         const schema = {
           name: Joi.string().min(1).max(100).required(),
           phoneNumber: Joi.string().required(),
@@ -83,6 +113,15 @@ class UsersController implements IController {
     
         return Joi.validate(user, schema);
     }
+
+    // MARK: - User body validation 
+    private validateLogin = (params: any) => {
+      const schema = {
+        phoneNumber: Joi.string().required(),
+      };
+  
+      return Joi.validate(params, schema);
+  }
 
     // MARK: - Token body validation 
     private validateToken = (token: string) => {

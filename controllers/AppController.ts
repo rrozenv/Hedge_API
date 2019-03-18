@@ -39,8 +39,8 @@ class AppController {
     // MARK: - Connect to data base
     private connectToTheDatabase() {
       mongoose.connect(config.get('db-host'), { useNewUrlParser: true })
-              .then(() => this.log('Connected to MongoDB...'))
-              .catch(err => this.log('Could not connect to MongoDB...'));
+        .then(() => this.log('Connected to MongoDB...'))
+        .catch(err => this.log('Could not connect to MongoDB...'));
     }
 
     private logEnvironment() { 

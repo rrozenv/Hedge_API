@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import Joi from 'Joi';
 import IStock from '../interfaces/stock.interface';
 import { quoteSchema } from './quote.model';
 

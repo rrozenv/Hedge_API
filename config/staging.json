@@ -1,5 +1,6 @@
 { 
     "name": "My app - Staging",
     "db-host": "mongodb://localhost/hedge",
-    "iex-base-url": "https://api.iextrading.com/1.0"
+    "iex-base-url": "https://api.iextrading.com/1.0",
+    "twilio-base-url": "https://api.authy.com/protected/json"
 }

@@ -3,18 +3,6 @@ import IStock from '../interfaces/stock.interface';
 import { quoteSchema } from './quote.model';
 
 const stockSchema = new mongoose.Schema({
-  symbol: { 
-    type: String,
-    required: true,
-    minlength: 0,
-    maxlength: 50
-  },
-  companyName: { 
-    type: String,
-    required: false,
-    minlength: 0,
-    maxlength: 250
-  },
   imageUrl: { 
     type: String,
     required: false,
@@ -33,4 +21,4 @@ const stockSchema = new mongoose.Schema({
 type StockType = IStock & mongoose.Document;
 const StockModel = mongoose.model<StockType>('Stock', stockSchema)
 
-export { stockSchema, StockModel };
+export { stockSchema, StockModel, StockType };

@@ -4,8 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node ./build/app.js"
+    "test": "jest --watchAll --verbose",
+    "start": "nodemon --watch './**/*.ts' --exec 'ts-node' ./app.ts"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +19,8 @@
     "config": "^3.0.1",
     "debug": "^4.1.1",
     "express": "^4.16.4",
+    "express-async-errors": "^3.1.1",
+    "fawn": "^2.1.5",
     "joi": "^14.3.1",
     "jsonwebtoken": "^8.5.0",
     "mongoose": "^5.4.19",
@@ -26,6 +28,10 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.2",
-    "jshint": "^2.10.2"
+    "@types/jest": "^24.0.11",
+    "jest": "^24.5.0",
+    "jshint": "^2.10.2",
+    "nodemon": "^1.18.10",
+    "ts-jest": "^24.0.0"
   }
 }

@@ -6,18 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importDefault(require("mongoose"));
 var quote_model_1 = require("./quote.model");
 var stockSchema = new mongoose_1.default.Schema({
-    symbol: {
-        type: String,
-        required: true,
-        minlength: 0,
-        maxlength: 50
-    },
-    companyName: {
-        type: String,
-        required: false,
-        minlength: 0,
-        maxlength: 250
-    },
     imageUrl: {
         type: String,
         required: false,

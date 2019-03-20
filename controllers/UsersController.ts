@@ -49,9 +49,9 @@ class UsersController implements IController {
             await user.save();
         } 
   
-        // Return user 
+        // Return user with token in headers
         const tokenData = this.createAuthToken(user);
-        res.header('Set-Cookie', this.createCookie(tokenData));
+        res.set(this.createHeadersWith(tokenData));
         res.send(user);
     }
 
@@ -66,9 +66,9 @@ class UsersController implements IController {
         let user = await UserModel.findOne({ phoneNumber: phoneNumber });
         if (!user) return res.status(400).send({ message: 'User does not exist.' });
         
-        // Return token
+        // Return user with token in headers
         const tokenData = this.createAuthToken(user);
-        res.header('Set-Cookie', this.createCookie(tokenData));
+        res.set(this.createHeadersWith(tokenData));
         res.send(user);
     } 
 
@@ -98,8 +98,12 @@ class UsersController implements IController {
         };
     }
 
-    private createCookie(tokenData: IToken): string {
-        return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn}`;
+    // MARK: - Auth headers creations
+    createHeadersWith(tokenData: IToken): any {
+        return { 
+          'x-auth-token': tokenData.token,
+          'token-expiration': tokenData.expiresIn
+        }
     }
   
     /// ** ---- VALIDATION ---- **

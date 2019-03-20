@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
       unique: true
     },
     admin: Boolean
+}, {
+  timestamps: true
 });
 
 // Model

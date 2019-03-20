@@ -43,19 +43,22 @@ var Joi_1 = __importDefault(require("Joi"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var config_1 = __importDefault(require("config"));
 var user_model_1 = require("../models/user.model");
+var TwilioService_1 = __importDefault(require("../services/TwilioService"));
 var UsersController = /** @class */ (function () {
     // MARK: - Constructor
     function UsersController() {
         var _this = this;
+        // MARK: - Properties
         this.path = '/users';
         this.router = express_1.default.Router({});
-        // MARK: - Routes
+        /// ** ---- POST ROUTES ---- **
+        // MARK: - Create User
         this.createUser = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
             var error, _a, name, phoneNumber, admin, user, tokenData;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        error = this.validateUser(req.body).error;
+                        error = this.validateCreate(req.body).error;
                         if (error)
                             return [2 /*return*/, res.status(400).send(error.details[0].message)];
                         _a = req.body, name = _a.name, phoneNumber = _a.phoneNumber, admin = _a.admin;
@@ -80,6 +83,61 @@ var UsersController = /** @class */ (function () {
                 }
             });
         }); };
+        // MARK: - Login User
+        this.loginUser = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+            var error, phoneNumber, user, tokenData;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        error = this.validateLogin(req.body).error;
+                        if (error)
+                            return [2 /*return*/, res.status(400).send(error.details[0].message)];
+                        phoneNumber = req.body.phoneNumber;
+                        return [4 /*yield*/, user_model_1.UserModel.findOne({ phoneNumber: phoneNumber })];
+                    case 1:
+                        user = _a.sent();
+                        if (!user)
+                            return [2 /*return*/, res.status(400).send({ message: 'User does not exist.' })];
+                        tokenData = this.createAuthToken(user);
+                        res.header('x-auth-token', tokenData.token);
+                        res.header('token-expiration', tokenData.expiresIn);
+                        //res.header('Set-Cookie', this.createCookie(tokenData));
+                        res.send(user);
+                        return [2 /*return*/];
+                }
+            });
+        }); };
+        // MARK: - Send phone verification code 
+        this.sendVerificationCode = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+            var _a, via, country_code, phone_number, response;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = req.body, via = _a.via, country_code = _a.country_code, phone_number = _a.phone_number;
+                        return [4 /*yield*/, this.twilio_service.sendVerificationCodeTo(phone_number, country_code, via)];
+                    case 1:
+                        response = _b.sent();
+                        res.send(response);
+                        return [2 /*return*/];
+                }
+            });
+        }); };
+        // MARK: - Validate verification code 
+        this.validateVerificationCode = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+            var _a, via, country_code, phone_number, response;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = req.body, via = _a.via, country_code = _a.country_code, phone_number = _a.phone_number;
+                        return [4 /*yield*/, this.twilio_service.validateVerificationCode(phone_number, country_code, via)];
+                    case 1:
+                        response = _b.sent();
+                        res.send(response);
+                        return [2 /*return*/];
+                }
+            });
+        }); };
+        /// ** ---- HELPER METHODS ---- **
         // MARK: - Auth token creation 
         this.createAuthToken = function (user) {
             var expiresIn = 60 * 60; // an hour
@@ -89,14 +147,22 @@ var UsersController = /** @class */ (function () {
                 token: jsonwebtoken_1.default.sign({ _id: user._id, admin: user.admin }, secret, { expiresIn: expiresIn }),
             };
         };
+        /// ** ---- VALIDATION ---- **
         // MARK: - User body validation 
-        this.validateUser = function (user) {
+        this.validateCreate = function (user) {
             var schema = {
                 name: Joi_1.default.string().min(1).max(100).required(),
                 phoneNumber: Joi_1.default.string().required(),
                 admin: Joi_1.default.boolean()
             };
             return Joi_1.default.validate(user, schema);
+        };
+        // MARK: - User body validation 
+        this.validateLogin = function (params) {
+            var schema = {
+                phoneNumber: Joi_1.default.string().required(),
+            };
+            return Joi_1.default.validate(params, schema);
         };
         // MARK: - Token body validation 
         this.validateToken = function (token) {
@@ -105,10 +171,14 @@ var UsersController = /** @class */ (function () {
             };
             return Joi_1.default.validate(token, schema);
         };
+        this.twilio_service = new TwilioService_1.default();
         this.initializeRoutes();
     }
     UsersController.prototype.initializeRoutes = function () {
         this.router.post(this.path, this.createUser);
+        this.router.post(this.path + "/login", this.loginUser);
+        this.router.post(this.path + "/sendPhoneVerificationCode", this.sendVerificationCode);
+        this.router.post(this.path + "/validatePhoneVerificationCode", this.validateVerificationCode);
     };
     UsersController.prototype.createCookie = function (tokenData) {
         return "Authorization=" + tokenData.token + "; HttpOnly; Max-Age=" + tokenData.expiresIn;

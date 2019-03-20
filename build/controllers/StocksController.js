@@ -40,7 +40,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var stock_model_1 = require("../models/stock.model");
-var IEXService_1 = __importDefault(require("../iex_api/IEXService"));
+var watchlist_model_1 = require("../models/watchlist.model");
+var IEXService_1 = __importDefault(require("../services/IEXService"));
 var StocksController = /** @class */ (function () {
     // MARK: - Constructor
     function StocksController() {
@@ -55,16 +56,40 @@ var StocksController = /** @class */ (function () {
                     case 0: return [4 /*yield*/, stock_model_1.StockModel.find()];
                     case 1:
                         stocks = _a.sent();
-                        return [4 /*yield*/, this.iex_service.fetchQuotes(stocks.map(function (s) { return s.symbol; }), ['quote'])];
+                        return [4 /*yield*/, this.iex_service.fetchQuotes(stocks.map(function (s) { return s.quote.symbol; }), ['quote'])];
                     case 2:
                         quotes = _a.sent();
                         updatedStocks = stocks.map(function (stock, _) {
-                            var quote = quotes.filter(function (quote) { return quote.symbol == stock.symbol; }).pop();
+                            var quote = quotes.filter(function (quote) { return quote.symbol == stock.quote.symbol; }).pop();
                             if (quote !== undefined)
                                 stock.quote = quote;
                             return stock;
                         });
                         res.send(updatedStocks);
+                        return [2 /*return*/];
+                }
+            });
+        }); };
+        // MARK: - Get portfolio by id
+        this.getStock = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+            var stock, watchlists;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, stock_model_1.StockModel.findById(req.params.id)];
+                    case 1:
+                        stock = _a.sent();
+                        if (!stock) return [3 /*break*/, 3];
+                        return [4 /*yield*/, watchlist_model_1.WatchlistModel
+                                .find({ user: req.user._id })];
+                    case 2:
+                        watchlists = _a.sent();
+                        res.send({
+                            stock: stock,
+                            watchlists: watchlists
+                        });
+                        _a.label = 3;
+                    case 3:
+                        res.status(400).send("Stock not found for: " + req.params.id);
                         return [2 /*return*/];
                 }
             });
@@ -101,6 +126,7 @@ var StocksController = /** @class */ (function () {
     }
     StocksController.prototype.initializeRoutes = function () {
         this.router.get(this.path, this.getStocks);
+        this.router.post(this.path + "/:id", this.getStock);
         this.router.post(this.path, this.createStock);
     };
     return StocksController;

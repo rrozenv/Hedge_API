@@ -1,4 +1,4 @@
 { 
-    "jwtKey": "h_jwtKey", 
-    "twilioKey": "h_twilioKey"
+    "jwtKey": "H_JWT_KEY", 
+    "twilioKey": "H_TWILIO_KEY"
 }

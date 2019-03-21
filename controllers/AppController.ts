@@ -39,7 +39,7 @@ class AppController {
       this.logEnvironment();
       this.listen();
 
-      this.clearDatabase();
+      // this.clearDatabase();
       // this.seedDatabase();
     }
    

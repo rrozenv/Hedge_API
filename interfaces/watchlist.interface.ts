@@ -5,5 +5,5 @@ import IPosition from './position.interface';
 export default interface IWatchlist { 
     name: string; 
     user: string; 
-    positions: IPosition[]; 
+    positions: string[];
 };

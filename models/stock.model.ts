@@ -21,7 +21,10 @@ const stockSchema = new mongoose.Schema({
     enum: ['technology', 'energy', 'healthcare'],
     maxlength: 10000
   },
-  quote: quoteSchema
+  quote: { 
+    type: quoteSchema,
+    required: true
+  }
 });
 
 type StockType = IStock & mongoose.Document;

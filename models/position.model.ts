@@ -3,10 +3,6 @@ import IPosition from '../interfaces/position.interface';
 import { stockSchema } from './stock.model';
 
 const positionSchema = new mongoose.Schema({
-  watchlists: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Watchlist'
-  }],
   stock: {  
     type: stockSchema,  
     required: true

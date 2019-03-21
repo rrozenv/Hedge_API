@@ -33,17 +33,7 @@ class StocksController implements IController {
     /// ** ---- GET ROUTES ---- **
     // MARK: - Get portfolio by id
     private getStock = async (req: any, res: any) => { 
-        // Find stock if exists
-        const stock = await StockModel.findById(req.params.id)  
-        if (!stock) return res.status(400).send(`Stock not found for: ${req.params.id}`)
-
-        // Find all wathlists for user. Client can decide if stock belongs in any watchlist
-        const watchlists = await WatchlistModel.find({ user: req.user._id })
-    
-        res.send({ 
-            stock: stock,
-            watchlists: watchlists 
-        })
+        
     };
 
 }

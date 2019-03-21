@@ -1,4 +1,4 @@
-require('./environment')();
+require('./util/environment')();
 import AppController from './controllers/AppController';
 import UsersController from './controllers/UsersController';
 import StocksController from './controllers/StocksController';

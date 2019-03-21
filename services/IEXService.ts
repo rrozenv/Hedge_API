@@ -25,10 +25,10 @@ class IEXService {
     
     }
 
-    // MARK: - Fetchs quotes for all stock in given portfolio 
+    // MARK: - Fetchs quotes for all given stocks 
     fetchQuotesForStocks = async (stocks: IStock[]): Promise<IStock[]> => {  
         // Fetch quotes for all stocks in portfolio
-        const quotes = await this.fetchQuotes(stocks.map(s => s.quote.symbol), ['quote']);
+        const quotes = await this.fetchQuotes(stocks.map(s => s.symbol), ['quote']);
                 
         // Update stocks with the fetched quotes
         return stocks.map((stock, _) => { 

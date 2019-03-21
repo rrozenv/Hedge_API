@@ -42,7 +42,6 @@ class PortfoliosController implements IController {
     private getDashboard = async (req: any, res: any) => {
         // Find portfolios
         const portfolios = await PortfolioModel.find()
-            .populate({ path: 'stocks', model: 'Stock' })
 
         // If first portfolio return empty array 
         let firstPortfolio = portfolios.shift();
@@ -60,29 +59,6 @@ class PortfoliosController implements IController {
         // Return all portfolios with first having updated stock quotes
         res.send({ portfolios: [firstPortfolio].concat(portfolios) });
     }
-
-    private getDashboardAlt = async (req: any, res: any) => { 
-        const latestPortfolio = await PortfolioModel.findOne({ createdAt: -1 })
-        .populate({ path: 'stocks', model: 'Stock' })
-
-        if (!latestPortfolio) return res.send([])
-        
-        // Try to fetch updated stocks for first portoflio only
-        try { 
-            const updatedStocks = await this.iex_service.fetchQuotesForStocks(latestPortfolio.stocks);
-            latestPortfolio.stocks = updatedStocks;
-            await latestPortfolio.save();
-        } catch(error) { 
-            this.log(error);
-        }
-
-        const remainingPortfolios = await PortfolioModel
-            .find({ _id: { $ne: latestPortfolio._id } })
-            .populate({ path: 'stocks', model: 'Stock' })
-
-        // Return all portfolios with first having updated stock quotes
-        res.send({ portfolios: [latestPortfolio].concat(remainingPortfolios) });
-    };
 
     // MARK: - Get portfolio by id
     private getPortfolio = async (req: any, res: any) => { 
@@ -138,17 +114,14 @@ class PortfoliosController implements IController {
     /// ** ---- HELPER METHODS ---- **
     // MARK: Create stock and save
     private createStock = async (stock: IStock): Promise<StockType> => { 
-        const { sector } = stock;
-
-        const quotes = await this.iex_service.fetchQuotes([stock.quote.symbol], ['quote']);
+        const quotes = await this.iex_service.fetchQuotes([stock.symbol], ['quote']);
 
         const stockModel = new StockModel({ 
-            imageUrl: '',
-            sector: sector,
+            symbol: stock.symbol,
+            imageUrl: stock.imageUrl,
+            sector: stock.sector,
             quote: quotes[0]
         });
-    
-        await stockModel.save();
     
         return stockModel;
     }

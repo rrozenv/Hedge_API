@@ -3,6 +3,12 @@ import IStock from '../interfaces/stock.interface';
 import { quoteSchema } from './quote.model';
 
 const stockSchema = new mongoose.Schema({
+  symbol: { 
+    type: String,
+    required: true,
+    minlength: 0,
+    maxlength: 10
+  },
   imageUrl: { 
     type: String,
     required: false,

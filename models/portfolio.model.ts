@@ -15,10 +15,7 @@ const portfolioSchema = new mongoose.Schema({
     minlength: 0,
     maxlength: 10000
   },
-  stocks: [{ 
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Stock'
-  }]
+  stocks: [stockSchema]
 }, {
   timestamps: true
 });

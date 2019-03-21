@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1553134939878" clover="3.2.0">
-  <project timestamp="1553134939878" name="All files">
-    <metrics statements="152" coveredstatements="102" conditionals="15" coveredconditionals="4" methods="29" coveredmethods="14" elements="196" coveredelements="120" complexity="0" loc="152" ncloc="152" packages="6" files="12" classes="12"/>
+<coverage generated="1553135191453" clover="3.2.0">
+  <project timestamp="1553135191453" name="All files">
+    <metrics statements="153" coveredstatements="103" conditionals="15" coveredconditionals="4" methods="29" coveredmethods="14" elements="197" coveredelements="121" complexity="0" loc="153" ncloc="153" packages="6" files="12" classes="12"/>
     <package name="hedge_api">
       <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
       <file name="environment.ts" path="/Users/rrozenv/Desktop/hedge_api/environment.ts">
@@ -145,13 +145,14 @@
       </file>
     </package>
     <package name="hedge_api.models">
-      <metrics statements="18" coveredstatements="18" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <metrics statements="19" coveredstatements="19" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
       <file name="portfolio.model.ts" path="/Users/rrozenv/Desktop/hedge_api/models/portfolio.model.ts">
-        <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
         <line num="5" count="1" type="stmt"/>
-        <line num="27" count="1" type="stmt"/>
-        <line num="29" count="1" type="stmt"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="26" count="1" type="stmt"/>
       </file>
       <file name="quote.model.ts" path="/Users/rrozenv/Desktop/hedge_api/models/quote.model.ts">
         <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>

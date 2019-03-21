@@ -16,6 +16,7 @@ import { QuoteModel } from '../models/quote.model';
 // Model Templates
 import stockTemplates from '../templates/stock.templates';
 import portfolioTemplates from '../templates/portfolio.templates';
+import { WatchlistModel } from '../models/watchlist.model';
 
 // MARK: - AppController
 class AppController {
@@ -38,8 +39,8 @@ class AppController {
       this.logEnvironment();
       this.listen();
 
+      this.clearDatabase();
       // this.seedDatabase();
-      // this.clearDatabase();
     }
    
      // MARK: - Start server
@@ -68,7 +69,7 @@ class AppController {
     // MARK: - Connect to data base
     private connectToTheDatabase() {
       const db: string = config.get('db-host');
-      mongoose.connect(db, { useNewUrlParser: true })
+      mongoose.connect(db, { useNewUrlParser: true, useFindAndModify: false })
         .then(() => this.log(`Connected to ${db}...`))
         .catch(err => this.log(`Could not connect to ${db}...`));
     }
@@ -95,12 +96,13 @@ class AppController {
     }
 
     // MARK: - Clears data base if not in production 
-    private clearDatabase() { 
+    private async clearDatabase() { 
       if (this.env !== 'production') { 
-        PortfolioModel.collection.deleteMany({});
-        StockModel.collection.deleteMany({});
-        UserModel.collection.deleteMany({});
-        QuoteModel.collection.deleteMany({});
+        await PortfolioModel.collection.deleteMany({});
+        await StockModel.collection.deleteMany({});
+        // await UserModel.collection.deleteMany({});
+        await QuoteModel.collection.deleteMany({});
+        await WatchlistModel.collection.deleteMany({});
       }
     }
 

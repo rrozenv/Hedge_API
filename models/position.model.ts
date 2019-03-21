@@ -1,10 +1,15 @@
 import mongoose from 'mongoose';
 import IPosition from '../interfaces/position.interface';
+import { stockSchema } from './stock.model';
 
 const positionSchema = new mongoose.Schema({
-  stock: { 
+  watchlists: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Stock'
+    ref: 'Watchlist'
+  }],
+  stock: {  
+    type: stockSchema,  
+    required: true
   },
   buyPricePerShare: { 
     type: Number,
@@ -21,4 +26,4 @@ const positionSchema = new mongoose.Schema({
 type PositionType = IPosition & mongoose.Document;
 const PositionModel = mongoose.model<PositionType>('Position', positionSchema)
 
-export { PositionModel, PositionType };
+export { PositionModel, PositionType, positionSchema };

@@ -41,13 +41,13 @@ class WatchlistsController implements IController {
     private getWatchlists = async (req: any, res: any) => { 
         const watchlists = await WatchlistModel
             .find({ user: req.user })
-            .populate({ path: 'positions', model: 'Position' });
+            .populate({ path: 'positions', model: 'Position' })
 
         res.send({ watchlists: watchlists });
     }
 
     /// ** ---- POST ROUTES ---- **
-    // MARK: - POST API's
+    // MARK: - Create watchlist
     private createWatchlist = async (req: any, res: any) => { 
         // Errors
         const { error } = this.validateCreate(req.body); 
@@ -56,9 +56,18 @@ class WatchlistsController implements IController {
         const name: string = req.body.name;
         const positions: IPosition[] = req.body.positions;
 
+        // Create watchlist with no positions so id is set
+        const watchlist = new WatchlistModel({ 
+            name: name,
+            user: req.user,
+            positions: [] 
+        });
+        await watchlist.save();
+
         // Create and save position models
         const positionModels = positions.map((p) => { 
             return new PositionModel({ 
+                watchlists: [watchlist],
                 stock: p.stock,
                 buyPricePerShare: p.buyPricePerShare,
                 shares: p.shares,
@@ -66,16 +75,19 @@ class WatchlistsController implements IController {
         });
         const savedPositions = await PositionModel.collection.insertMany(positionModels);
 
-        // Create watchlist with position models
-        const watchlist = new WatchlistModel({ 
-            name: name,
-            user: req.user,
-            positions: savedPositions.ops
-        });
-        await watchlist.save();
-
+        // Update watchlist with positions 
+        await WatchlistModel.findOneAndUpdate(
+            { _id: watchlist._id },
+            { $set: { positions: savedPositions.ops } }
+        )
+        
+        // Get watchlist with positions 
+        const updatedWatchlist = await WatchlistModel
+            .findOne({ _id: watchlist._id })
+            .populate({ path: 'positions', model: 'Position' })
+        
         // Return watchlist
-        res.send(watchlist);
+        res.send(updatedWatchlist);
     }
 
     /// ** ---- VALIDATION ---- **

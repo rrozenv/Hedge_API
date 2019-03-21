@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import IWatchlist from '../interfaces/watchlist.interface';
+// import { positionSchema } from './position.model';
 
 const watchlistSchema = new mongoose.Schema({
   name: { 
@@ -10,9 +11,10 @@ const watchlistSchema = new mongoose.Schema({
   },
   user: { 
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    required: true
   },
-  positions: [{ 
+  positions: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Position'
   }]

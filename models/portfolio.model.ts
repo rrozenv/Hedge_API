@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import IPortfolio from '../interfaces/portfolio.interface';
+import { stockSchema } from './stock.model';
 
 const portfolioSchema = new mongoose.Schema({
   name: { 

@@ -1,15 +1,21 @@
+// Dependencies
 import express from 'express';
 import Joi from 'Joi';
 import debug from 'debug';
-import IController from '../interfaces/controller.interface';
-import { PortfolioModel, PortfolioType } from '../models/portfolio.model';
-import { StockModel, StockType } from '../models/stock.model';
-import IEXService from '../services/IEXService';
-import IStock from '../interfaces/stock.interface';
+// Middleware
 import auth from '../middleware/auth';
 import validateObjectId from '../middleware/validateObjectId';
+// Models
+import { PortfolioModel } from '../models/portfolio.model';
+import { StockModel, StockType } from '../models/stock.model';
+// Interfaces
+import IController from '../interfaces/controller.interface';
+import IStock from '../interfaces/stock.interface';
 import IPortfolio from '../interfaces/portfolio.interface';
+// Services
+import IEXService from '../services/IEXService';
 
+// MARK: - PortfoliosController
 class PortfoliosController implements IController {
     
     // MARK: - Properties
@@ -33,7 +39,7 @@ class PortfoliosController implements IController {
 
     /// ** ---- GET ROUTES ---- **
     // MARK: - Get dashboard
-    private getDashboard = async (req: any, res: any) => { 
+    private getDashboard = async (req: any, res: any) => {
         // Find portfolios
         const portfolios = await PortfolioModel.find()
             .populate({ path: 'stocks', model: 'Stock' })
@@ -54,6 +60,29 @@ class PortfoliosController implements IController {
         // Return all portfolios with first having updated stock quotes
         res.send({ portfolios: [firstPortfolio].concat(portfolios) });
     }
+
+    private getDashboardAlt = async (req: any, res: any) => { 
+        const latestPortfolio = await PortfolioModel.findOne({ createdAt: -1 })
+        .populate({ path: 'stocks', model: 'Stock' })
+
+        if (!latestPortfolio) return res.send([])
+        
+        // Try to fetch updated stocks for first portoflio only
+        try { 
+            const updatedStocks = await this.iex_service.fetchQuotesForStocks(latestPortfolio.stocks);
+            latestPortfolio.stocks = updatedStocks;
+            await latestPortfolio.save();
+        } catch(error) { 
+            this.log(error);
+        }
+
+        const remainingPortfolios = await PortfolioModel
+            .find({ _id: { $ne: latestPortfolio._id } })
+            .populate({ path: 'stocks', model: 'Stock' })
+
+        // Return all portfolios with first having updated stock quotes
+        res.send({ portfolios: [latestPortfolio].concat(remainingPortfolios) });
+    };
 
     // MARK: - Get portfolio by id
     private getPortfolio = async (req: any, res: any) => { 

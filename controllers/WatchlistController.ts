@@ -1,16 +1,22 @@
+// Dependecies
 import express from 'express';
 import Joi from 'Joi';
 import debug from 'debug';
-import mongoose from 'mongoose';
-import IController from '../interfaces/controller.interface';
-import { WatchlistModel, WatchlistType } from '../models/watchlist.model';
-import { PositionModel, PositionType } from '../models/position.model';
-import IEXService from '../services/IEXService';
+// Middleware
 import auth from '../middleware/auth';
+// Interfaces
+import IController from '../interfaces/controller.interface';
 import IPosition from '../interfaces/position.interface';
 import IWatchlist from '../interfaces/watchlist.interface';
+// Models
+import { WatchlistModel } from '../models/watchlist.model';
+import { PositionModel } from '../models/position.model';
+// Services
+import IEXService from '../services/IEXService';
 
+// MARK: - WatchlistsController
 class WatchlistsController implements IController {
+    
     // MARK: - Properties
     public path = '/watchlists';
     public router = express.Router({});
@@ -24,13 +30,14 @@ class WatchlistsController implements IController {
       this.initializeRoutes();
     }
    
+    // MARK: - Create Routes
     private initializeRoutes() {
       this.router.get(this.path, auth, this.getWatchlists);
       this.router.post(this.path, auth, this.createWatchlist);
     }
 
     /// ** ---- GET ROUTES ---- **
-    // MARK: - Get dashboard
+    // MARK: - Get all users watchlists
     private getWatchlists = async (req: any, res: any) => { 
         const watchlists = await WatchlistModel
             .find({ user: req.user })

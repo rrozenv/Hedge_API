@@ -1,40 +1,51 @@
+// Dependencies
+require('express-async-errors');
 import express from 'express';
 import mongoose from 'mongoose';
 import config from 'config';
 import debug from 'debug';
-import Controller from '../interfaces/controller.interface'
+// Middleware
 import error from '../middleware/error'
+// Interfaces 
+import Controller from '../interfaces/controller.interface'
+// Models
 import { PortfolioModel } from '../models/portfolio.model';
 import { StockModel } from '../models/stock.model';
 import { UserModel } from '../models/user.model';
 import { QuoteModel } from '../models/quote.model';
+// Model Templates
 import stockTemplates from '../templates/stock.templates';
 import portfolioTemplates from '../templates/portfolio.templates';
-require('express-async-errors');
 
+// MARK: - AppController
 class AppController {
+    
+    // MARK: - Properties
     public app: any;
+    public server: any;
     private log: debug.Debugger;
     private env: string;
    
+    // MARK: - Constructer
     constructor(controllers: Controller[])  {
       this.app = express();
       this.log = debug('controller:app');
       this.env = this.app.get('env');
-   
       this.connectToTheDatabase();
       this.initializeExpressMiddleware();
       this.initializeControllers(controllers);
       this.initializeErrorMiddleware();
       this.logEnvironment();
+      this.listen();
+
       // this.seedDatabase();
       // this.clearDatabase();
     }
    
-     // MARK: - Public methods
-    public listen() {
+     // MARK: - Start server
+    private listen() {
       const port = process.env.PORT || 3000;
-      this.app.listen(port, () => this.log(`Listening on port ${port}...`));
+      this.server = this.app.listen(port, () => this.log(`Listening on port ${port}...`));
     }
    
     // MARK: - Initalize express middleware

@@ -1,13 +1,18 @@
+// Dependencies
 import express from 'express';
-import IToken from '../interfaces/token.interface'
-import IUser from '../interfaces/user.interface'
 import Joi from 'Joi';
 import jwt from 'jsonwebtoken';
 import config from 'config';
-import { UserModel, UserType } from '../models/user.model'
+// Interfaces
+import IToken from '../interfaces/token.interface'
+import IUser from '../interfaces/user.interface'
 import IController from '../interfaces/controller.interface';
+// Models
+import { UserModel, UserType } from '../models/user.model'
+// Services
 import TwilioService from '../services/TwilioService';
 
+// MARK: - UsersController
 class UsersController implements IController {
     
     // MARK: - Properties
@@ -27,7 +32,7 @@ class UsersController implements IController {
       this.router.post(`${this.path}/sendPhoneVerificationCode`, this.sendVerificationCode);
       this.router.post(`${this.path}/validatePhoneVerificationCode`, this.validateVerificationCode);
     }
-   
+
     /// ** ---- POST ROUTES ---- **
     // MARK: - Create User
     private createUser = async (req: any, res: any) => {
@@ -88,13 +93,13 @@ class UsersController implements IController {
 
     /// ** ---- HELPER METHODS ---- **
     // MARK: - Auth token creation 
-    private createAuthToken = (user: UserType): IToken => { 
+    createAuthToken = (user: UserType): IToken => { 
         const expiresIn = 60 * 60; // an hour
         const secret: string = config.get('jwtKey');
     
         return {
             expiresIn,
-            token: jwt.sign({ _id: user._id, admin: user.admin }, secret, { expiresIn }),
+            token: jwt.sign({ _id: user._id, admin: user.admin, phoneNumber: user.phoneNumber }, secret, { expiresIn }),
         };
     }
 

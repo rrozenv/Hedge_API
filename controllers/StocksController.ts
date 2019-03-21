@@ -1,10 +1,20 @@
+// Dependencies
 import express from 'express';
+// Middleware
+import auth from '../middleware/auth';
+import validateObjectId from '../middleware/validateObjectId';
+// Interfaces
 import IController from '../interfaces/controller.interface';
+// Models
 import { StockModel } from '../models/stock.model';
-import { WatchlistModel, WatchlistType } from '../models/watchlist.model';
+import { WatchlistModel } from '../models/watchlist.model';
+// Services
 import IEXService from '../services/IEXService';
 
+// MARK: - StocksController
 class StocksController implements IController {
+    
+    // MARK: - Properties
     public path = '/stocks';
     public router = express.Router({});
     private iex_service: IEXService;
@@ -15,65 +25,26 @@ class StocksController implements IController {
       this.initializeRoutes();
     }
    
+    // MARK: - Create routes
     private initializeRoutes() {
-      this.router.get(this.path, this.getStocks);
-      this.router.post(`${this.path}/:id`, this.getStock);
-      this.router.post(this.path, this.createStock);
+      this.router.post(`${this.path}/:id`, [auth, validateObjectId], this.getStock);
     }
 
-    // MARK: - GET API's
-    private getStocks = async (req: any, res: any) => { 
-        const stocks = await StockModel.find()
-  
-        const quotes = await this.iex_service.fetchQuotes(stocks.map(s => s.quote.symbol), ['quote']);
-
-        const updatedStocks = stocks.map((stock, _) => { 
-            const quote = quotes.filter(quote => quote.symbol == stock.quote.symbol).pop()
-            if (quote !== undefined) stock.quote = quote
-            return stock
-        });
-   
-        res.send(updatedStocks);
-    }
-
+    /// ** ---- GET ROUTES ---- **
     // MARK: - Get portfolio by id
     private getStock = async (req: any, res: any) => { 
+        // Find stock if exists
         const stock = await StockModel.findById(req.params.id)  
-        
-        if (stock) { 
-            const watchlists = await WatchlistModel
-                .find({ user: req.user._id })
-        
-            res.send({ 
-                stock: stock,
-                watchlists: watchlists 
-            })
-        }
+        if (!stock) return res.status(400).send(`Stock not found for: ${req.params.id}`)
 
-        res.status(400).send(`Stock not found for: ${req.params.id}`)
+        // Find all wathlists for user. Client can decide if stock belongs in any watchlist
+        const watchlists = await WatchlistModel.find({ user: req.user._id })
+    
+        res.send({ 
+            stock: stock,
+            watchlists: watchlists 
+        })
     };
-
-     // MARK: - POST API's
-    private createStock = async (req: any, res: any) => { 
-        const { symbol, companyName } = req.body;
-
-        const stock = new StockModel({ 
-            symbol: symbol,
-            companyName: companyName,
-            imageUrl: '',
-            sector: 'technology',
-            quote: { 
-                symbol: symbol,
-                companyName: companyName,
-                latestPrice: 100.0,
-                changePercent: 2.0
-            }
-        });
-    
-        await stock.save();
-    
-        res.send(stock);
-    }
 
 }
 

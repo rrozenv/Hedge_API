@@ -10,12 +10,14 @@ import error from '../middleware/error'
 import Controller from '../interfaces/controller.interface'
 // Models
 import { PortfolioModel } from '../models/portfolio.model';
+import { DailyPortfolioPerformanceModel } from '../models/dailyPortfolioPerformance.model';
 import { StockModel } from '../models/stock.model';
 import { UserModel } from '../models/user.model';
 import { QuoteModel } from '../models/quote.model';
 // Model Templates
 import stockTemplates from '../templates/stock.templates';
 import portfolioTemplates from '../templates/portfolio.templates';
+import dailyPortfolioPerformanceTemplates from '../templates/dailyPortfolioPerformance.templates';
 import { WatchlistModel } from '../models/watchlist.model';
 
 // MARK: - AppController
@@ -38,9 +40,6 @@ class AppController {
       this.initializeErrorMiddleware();
       this.logEnvironment();
       this.listen();
-
-      // this.clearDatabase();
-      // this.seedDatabase();
     }
    
      // MARK: - Start server
@@ -70,7 +69,11 @@ class AppController {
     private connectToTheDatabase() {
       const db: string = config.get('db-host');
       mongoose.connect(db, { useNewUrlParser: true, useFindAndModify: false })
-        .then(() => this.log(`Connected to ${db}...`))
+        .then(async () => {
+          this.log(`Connected to ${db}...`)
+          await this.clearDatabase();
+          await this.seedDatabase();
+        })
         .catch(err => this.log(`Could not connect to ${db}...`));
     }
 
@@ -97,19 +100,34 @@ class AppController {
 
     // MARK: - Clears data base if not in production 
     private async clearDatabase() { 
+      this.log('Clearing database...');
+
       if (this.env !== 'production') { 
         await PortfolioModel.collection.deleteMany({});
         await StockModel.collection.deleteMany({});
         // await UserModel.collection.deleteMany({});
         await QuoteModel.collection.deleteMany({});
         await WatchlistModel.collection.deleteMany({});
+        await DailyPortfolioPerformanceModel.collection.deleteMany({});
       }
     }
 
     // MARK: - Seeds data base with default models
     private async seedDatabase() { 
+      this.log('Seeding database...');
+
+      // Stocks
       await StockModel.collection.insertMany(stockTemplates);
-      await PortfolioModel.collection.insertMany(portfolioTemplates);
+
+      // Portfolios
+      const portfolios = portfolioTemplates;
+      await PortfolioModel.collection.insertMany(portfolios);
+
+      // Daily Portfolio Returns
+      portfolios.map(async (port) => { 
+        let templates = dailyPortfolioPerformanceTemplates(port);
+        await DailyPortfolioPerformanceModel.collection.insertMany(templates);
+      });
     }
 
   }

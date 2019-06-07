@@ -2,12 +2,14 @@
 import express from 'express';
 import Joi from 'Joi';
 import debug from 'debug';
+import moment from 'moment';
 // Middleware
 import auth from '../middleware/auth';
 import validateObjectId from '../middleware/validateObjectId';
 import bodyValidation from '../middleware/joi';
 // Models
-import { PortfolioModel } from '../models/portfolio.model';
+import { PortfolioModel, PortfolioType } from '../models/portfolio.model';
+import { DailyPortfolioPerformanceModel, DailyPortfolioPerformanceType } from '../models/dailyPortfolioPerformance.model';
 import { StockModel, StockType } from '../models/stock.model';
 // Interfaces
 import IController from '../interfaces/controller.interface';
@@ -35,13 +37,60 @@ class PortfoliosController implements IController {
     }
    
     private initializeRoutes() {
+      this.router.get(Path.dashboard, this.getDashboardPortfolios);
       this.router.get(Path.portfolios, auth, this.getPortfolios);
       this.router.get(`${Path.portfolios}/:id`, [auth, validateObjectId], this.getPortfolio);
       this.router.post(Path.portfolios, [auth, bodyValidation], this.createPortfolio);
     }
 
     /// ** ---- GET ROUTES ---- **
+
     // MARK: - Get dashboard
+    private getDashboardPortfolios = async (req: any, res: any) => {
+        // Find portfolios
+        const portfolios = await PortfolioModel.find() 
+
+        // Create stocks 
+        let startDate = moment().subtract(1, 'year').toDate();
+        let endDate = moment().toDate();
+        
+        this.log(startDate);
+        this.log(endDate);
+
+        const modifiedPortfolios = await Promise.all(
+            portfolios.map(async (port) => { 
+                const dailyReturnValues = await this.fetchDailyReturnValue(port, startDate, endDate)
+                const chartPoints = dailyReturnValues.map((val) => { 
+                    return { 
+                        xValue: val.date.toISOString(),
+                        yValue: val.performance
+                    }
+                });
+                const percentageReturn = dailyReturnValues.reduce((sum, val) => { 
+                    return sum + val.performance
+                }, 0) / dailyReturnValues.length
+                
+                return { 
+                    startDate: startDate,
+                    endDate: endDate,
+                    range: 'year',
+                    percentageReturn: percentageReturn,
+                    chart: { points: chartPoints }
+                }
+            })
+        );
+
+        res.send({ portfolios: modifiedPortfolios });
+    }
+    
+    private fetchDailyReturnValue = async (portfolio: PortfolioType, startDate: Date, endDate: Date) => { 
+        return await DailyPortfolioPerformanceModel.find({ 
+            portfolio: portfolio, 
+            date: { $gte: startDate, $lte: endDate } 
+        })
+    }
+
+    // MARK: - Get Old Dashboard
     private getPortfolios = async (req: any, res: any) => {
         // Find portfolios
         const portfolios = await PortfolioModel.find()

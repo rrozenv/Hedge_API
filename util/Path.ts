@@ -1,5 +1,6 @@
 
 class Path { 
+    public static dashboard = '/dashboard'
     public static portfolios = '/portfolios'
     public static createPositions = '/positions/create'
     public static updatePositions = '/positions/update/:id'

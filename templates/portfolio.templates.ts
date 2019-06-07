@@ -12,6 +12,11 @@ const portfolioTemplates: PortfolioType[] = [
       description: "Second Desc",
       stocks: stockTemplates,
     }),
+    new PortfolioModel({ 
+      name: "Second Portfolio",
+      description: "Second Desc",
+      stocks: stockTemplates,
+    })
 ];
 
 export default portfolioTemplates;

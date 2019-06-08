@@ -18,6 +18,8 @@ import IPortfolio from '../interfaces/portfolio.interface';
 // Services
 import IEXService from '../services/IEXService';
 import APIError from '../util/Error';
+import { createChartPerformanceResponse } from './PortfolioPerformanceController'
+
 // Path
 import Path from '../util/Path';
 
@@ -50,46 +52,23 @@ class PortfoliosController implements IController {
         // Find portfolios
         const portfolios = await PortfolioModel.find() 
 
-        // Create stocks 
-        let startDate = moment().subtract(1, 'year').toDate();
-        let endDate = moment().toDate();
-        
-        this.log(startDate);
-        this.log(endDate);
-
+        // Create response 
         const modifiedPortfolios = await Promise.all(
             portfolios.map(async (port) => { 
-                const dailyReturnValues = await this.fetchDailyReturnValue(port, startDate, endDate)
-                const chartPoints = dailyReturnValues.map((val) => { 
-                    return { 
-                        xValue: val.date.toISOString(),
-                        yValue: val.performance
-                    }
-                });
-                const percentageReturn = dailyReturnValues.reduce((sum, val) => { 
-                    return sum + val.performance
-                }, 0) / dailyReturnValues.length
-                
+                const performance = await createChartPerformanceResponse(port, 'year')
                 return { 
-                    startDate: startDate,
-                    endDate: endDate,
-                    range: 'year',
-                    percentageReturn: percentageReturn,
-                    chart: { points: chartPoints }
+                    id: port._id,
+                    name: port.name,
+                    description: port.description,
+                    performance: performance
                 }
             })
         );
 
+        // Send response 
         res.send({ portfolios: modifiedPortfolios });
     }
     
-    private fetchDailyReturnValue = async (portfolio: PortfolioType, startDate: Date, endDate: Date) => { 
-        return await DailyPortfolioPerformanceModel.find({ 
-            portfolio: portfolio, 
-            date: { $gte: startDate, $lte: endDate } 
-        })
-    }
-
     // MARK: - Get Old Dashboard
     private getPortfolios = async (req: any, res: any) => {
         // Find portfolios

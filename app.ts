@@ -5,6 +5,7 @@ import StocksController from './controllers/StocksController';
 import PortfoliosController from './controllers/PortfoliosController';
 import WatchlistController from './controllers/WatchlistController';
 import PositionsController from './controllers/PositionsController';
+import { PortfolioPerformanceController } from './controllers/PortfolioPerformanceController';
 
 new AppController(
   [
@@ -12,7 +13,8 @@ new AppController(
     new StocksController(),
     new PortfoliosController(),
     new WatchlistController(),
-    new PositionsController()
+    new PositionsController(),
+    new PortfolioPerformanceController()
   ],
 );
  

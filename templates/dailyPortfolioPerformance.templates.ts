@@ -6,14 +6,24 @@ const dailyPortfolioPerformanceTemplates = (portfolio: PortfolioType): DailyPort
     return [ 
         new DailyPortfolioPerformanceModel({ 
           portfolio: portfolio._id,
-          date: moment().toDate(),
-          performance: new Number('10.0')
+          date: moment().subtract(1, 'months').endOf('month').toDate(),
+          performance: 10.0
         }),
         new DailyPortfolioPerformanceModel({ 
             portfolio: portfolio._id,
-            date: moment().toDate(),
-            performance: new Number('10.0')
+            date: moment().subtract(2, 'months').endOf('month').toDate(),
+            performance: 20.0
         }),
+        new DailyPortfolioPerformanceModel({ 
+            portfolio: portfolio._id,
+            date: moment().subtract(3, 'months').endOf('month').toDate(),
+            performance: 30.0
+        }),
+        new DailyPortfolioPerformanceModel({ 
+            portfolio: portfolio._id,
+            date: moment().subtract(10, 'months').endOf('month').toDate(),
+            performance: 100.0
+        })
     ];
 }
 

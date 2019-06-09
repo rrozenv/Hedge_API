@@ -17,8 +17,6 @@ class IEXService {
                 const symbol = ticker.toUpperCase();
                 const quote = payload.body[symbol].quote;
                 return new QuoteModel({ 
-                    symbol: quote.symbol,
-                    companyName: quote.companyName,
                     latestPrice: quote.latestPrice,
                     changePercent: quote.changePercent
                 });
@@ -37,7 +35,7 @@ class IEXService {
 
             // Update stocks with the fetched quotes
             return stocks.map((stock, _) => { 
-                const quote = quotes.filter(quote => quote.symbol == stock.quote.symbol).pop()
+                const quote = quotes.filter(quote => quote.symbol == stock.symbol).pop()
                 if (quote !== undefined) stock.quote = quote
                 return stock
             });

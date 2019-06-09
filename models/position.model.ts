@@ -15,6 +15,18 @@ const positionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  type: { 
+    type: String,
+    required: true
+  },
+  status: { 
+    type: String,
+    required: true
+  },
+  weightPercentage: { 
+    type: Number,
+    required: false
+  }
 }, {
   timestamps: true
 });

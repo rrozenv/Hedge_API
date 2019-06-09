@@ -9,6 +9,12 @@ const stockSchema = new mongoose.Schema({
     minlength: 0,
     maxlength: 10
   },
+  companyName: { 
+      type: String,
+      required: false,
+      minlength: 0,
+      maxlength: 50
+  },
   imageUrl: { 
     type: String,
     required: false,

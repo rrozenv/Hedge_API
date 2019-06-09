@@ -40,8 +40,8 @@ class PortfoliosController implements IController {
    
     private initializeRoutes() {
       this.router.get(Path.dashboard, this.getDashboardPortfolios);
-      this.router.get(Path.portfolios, auth, this.getPortfolios);
-      this.router.get(`${Path.portfolios}/:id`, [auth, validateObjectId], this.getPortfolio);
+    //   this.router.get(Path.portfolios, auth, this.getPortfolios);
+    //   this.router.get(`${Path.portfolios}/:id`, [auth, validateObjectId], this.getPortfolio);
       this.router.post(Path.portfolios, [auth, bodyValidation], this.createPortfolio);
     }
 
@@ -60,7 +60,8 @@ class PortfoliosController implements IController {
                     id: port._id,
                     name: port.name,
                     description: port.description,
-                    performance: performance
+                    performance: performance,
+                    positions: port.positions
                 }
             })
         );
@@ -70,45 +71,45 @@ class PortfoliosController implements IController {
     }
     
     // MARK: - Get Old Dashboard
-    private getPortfolios = async (req: any, res: any) => {
-        // Find portfolios
-        const portfolios = await PortfolioModel.find()
+    // private getPortfolios = async (req: any, res: any) => {
+    //     // Find portfolios
+    //     const portfolios = await PortfolioModel.find()
 
-        // If first portfolio return empty array 
-        let firstPortfolio = portfolios.shift();
-        if (!firstPortfolio) return res.send(portfolios)
+    //     // If first portfolio return empty array 
+    //     let firstPortfolio = portfolios.shift();
+    //     if (!firstPortfolio) return res.send(portfolios)
         
-        // Try to fetch updated stocks for first portoflio only
-        try { 
-            const updatedStocks = await this.iex_service.fetchQuotesForStocks(firstPortfolio.stocks);
-            firstPortfolio.stocks = updatedStocks;
-            await firstPortfolio.save();
-        } catch(error) { 
-            this.log(error);
-        }
+    //     // Try to fetch updated stocks for first portoflio only
+    //     try { 
+    //         const updatedStocks = await this.iex_service.fetchQuotesForStocks(firstPortfolio.stocks);
+    //         firstPortfolio.stocks = updatedStocks;
+    //         await firstPortfolio.save();
+    //     } catch(error) { 
+    //         this.log(error);
+    //     }
         
-        // Return all portfolios with first having updated stock quotes
-        res.send({ portfolios: [firstPortfolio].concat(portfolios) });
-    }
+    //     // Return all portfolios with first having updated stock quotes
+    //     res.send({ portfolios: [firstPortfolio].concat(portfolios) });
+    // }
 
     // MARK: - Get portfolio by id
-    private getPortfolio = async (req: any, res: any) => { 
-        // Find portfolio by id
-        let portfolio = await PortfolioModel.findById(req.params.id); 
-        if (!portfolio) return res.status(400).send(`Portfolio not found for: ${req.params.id}`)
+    // private getPortfolio = async (req: any, res: any) => { 
+    //     // Find portfolio by id
+    //     let portfolio = await PortfolioModel.findById(req.params.id); 
+    //     if (!portfolio) return res.status(400).send(`Portfolio not found for: ${req.params.id}`)
 
-        // Try to fetch updated stock quotes and return updated portfolio
-        // If call to IEX fails log error and return portfolio 
-        try { 
-            const updatedStocks = await this.iex_service.fetchQuotesForStocks(portfolio.stocks);
-            portfolio.stocks = updatedStocks;
-            await portfolio.save();
-            res.send(portfolio);
-        } catch(error) { 
-            this.log(error);
-            res.send(portfolio);
-        }
-    };
+    //     // Try to fetch updated stock quotes and return updated portfolio
+    //     // If call to IEX fails log error and return portfolio 
+    //     try { 
+    //         const updatedStocks = await this.iex_service.fetchQuotesForStocks(portfolio.stocks);
+    //         portfolio.stocks = updatedStocks;
+    //         await portfolio.save();
+    //         res.send(portfolio);
+    //     } catch(error) { 
+    //         this.log(error);
+    //         res.send(portfolio);
+    //     }
+    // };
 
     /// ** ---- POST ROUTES ---- **
     // MARK: - POST API's

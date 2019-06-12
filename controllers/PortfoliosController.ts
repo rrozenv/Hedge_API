@@ -69,6 +69,25 @@ class PortfoliosController implements IController {
         // Send response 
         res.send({ portfolios: modifiedPortfolios });
     }
+
+        // MARK: - Get portfolio by id
+    // private getPortfolio = async (req: any, res: any) => { 
+    //     // Find portfolio by id
+    //     let portfolio = await PortfolioModel.findById(req.params.id); 
+    //     if (!portfolio) return res.status(400).send(`Portfolio not found for: ${req.params.id}`)
+
+    //     // Try to fetch updated stock quotes and return updated portfolio
+    //     // If call to IEX fails log error and return portfolio 
+    //     try { 
+    //         const updatedStocks = await this.iex_service.fetchQuotesForStocks(portfolio.stocks);
+    //         portfolio.stocks = updatedStocks;
+    //         await portfolio.save();
+    //         res.send(portfolio);
+    //     } catch(error) { 
+    //         this.log(error);
+    //         res.send(portfolio);
+    //     }
+    // };
     
     // MARK: - Get Old Dashboard
     // private getPortfolios = async (req: any, res: any) => {
@@ -92,24 +111,7 @@ class PortfoliosController implements IController {
     //     res.send({ portfolios: [firstPortfolio].concat(portfolios) });
     // }
 
-    // MARK: - Get portfolio by id
-    // private getPortfolio = async (req: any, res: any) => { 
-    //     // Find portfolio by id
-    //     let portfolio = await PortfolioModel.findById(req.params.id); 
-    //     if (!portfolio) return res.status(400).send(`Portfolio not found for: ${req.params.id}`)
 
-    //     // Try to fetch updated stock quotes and return updated portfolio
-    //     // If call to IEX fails log error and return portfolio 
-    //     try { 
-    //         const updatedStocks = await this.iex_service.fetchQuotesForStocks(portfolio.stocks);
-    //         portfolio.stocks = updatedStocks;
-    //         await portfolio.save();
-    //         res.send(portfolio);
-    //     } catch(error) { 
-    //         this.log(error);
-    //         res.send(portfolio);
-    //     }
-    // };
 
     /// ** ---- POST ROUTES ---- **
     // MARK: - POST API's

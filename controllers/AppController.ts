@@ -14,11 +14,17 @@ import { DailyPortfolioPerformanceModel } from '../models/dailyPortfolioPerforma
 import { StockModel } from '../models/stock.model';
 import { UserModel } from '../models/user.model';
 import { QuoteModel } from '../models/quote.model';
+import { HedgeFundModel } from '../models/hedgeFund.model';
 // Model Templates
 import stockTemplates from '../templates/stock.templates';
 import portfolioTemplates from '../templates/portfolio.templates';
 import dailyPortfolioPerformanceTemplates from '../templates/dailyPortfolioPerformance.templates';
 import { WatchlistModel } from '../models/watchlist.model';
+import { PositionModel } from '../models/position.model';
+import positionTemplates from '../templates/position.templates';
+import hedgeFundTemplates from '../templates/hedgeFund.templates';
+import { HedgeFundPositionModel } from '../models/hedgeFundPosition.model';
+import hedgeFundPositionTemplates from '../templates/hedgeFundPosition.templates';
 
 // MARK: - AppController
 class AppController {
@@ -71,8 +77,8 @@ class AppController {
       mongoose.connect(db, { useNewUrlParser: true, useFindAndModify: false })
         .then(async () => {
           this.log(`Connected to ${db}...`)
-          await this.clearDatabase();
-          await this.seedDatabase();
+          // await this.clearDatabase();
+          // await this.seedDatabase();
         })
         .catch(err => this.log(`Could not connect to ${db}...`));
     }
@@ -119,9 +125,18 @@ class AppController {
       // Stocks
       await StockModel.collection.insertMany(stockTemplates);
 
+      // Hedge Funds 
+      await HedgeFundModel.collection.insertMany(hedgeFundTemplates);
+
+      // Hedge Fund Positions 
+      await HedgeFundPositionModel.collection.insertMany(hedgeFundPositionTemplates);
+
       // Portfolios
       const portfolios = portfolioTemplates;
       await PortfolioModel.collection.insertMany(portfolios);
+
+      // Positions
+      await PositionModel.collection.insertMany(positionTemplates);
 
       // Daily Portfolio Returns
       portfolios.map(async (port) => { 

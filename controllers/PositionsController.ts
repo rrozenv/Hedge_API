@@ -35,9 +35,17 @@ class PositionsController implements IController {
    
     // MARK: - Create Routes
     private initializeRoutes() {
+      this.router.get(`${Path.positions}/:id`, this.getPosition);
       this.router.post(Path.createPositions, [auth, bodyValidation], this.createPosition);
       this.router.put(Path.updatePositions, [auth, bodyValidation], this.updatePosition);
     }
+
+    // MARK: - Get portfolio by id
+    private getPosition = async (req: any, res: any) => { 
+        let position = await PositionModel.findById(req.params.id); 
+        if (!position) return res.status(400).send(`Portfolio not found for: ${req.params.id}`)
+        res.send(position);
+    };
 
     /// ** ---- POST ROUTES ---- **
     // MARK: - Create watchlist

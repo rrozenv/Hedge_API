@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import IPosition from '../interfaces/position.interface';
 import { stockSchema } from './stock.model';
+import { investmentSummaryGroupSchema } from './investmentSummaryGroup.model';
+import { hedgeFundPositionSchema } from './hedgeFundPosition.model';
 
 const positionSchema = new mongoose.Schema({
   stock: {  
@@ -26,7 +28,12 @@ const positionSchema = new mongoose.Schema({
   weightPercentage: { 
     type: Number,
     required: false
-  }
+  },
+  investmentSummaryGroups: [investmentSummaryGroupSchema],
+  hedgeFundPositions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'HedgeFundPosition'
+  }]
 }, {
   timestamps: true
 });

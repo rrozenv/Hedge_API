@@ -20,7 +20,10 @@ const portfolioSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  positions: [positionSchema]
+  positions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Position'
+  }]
 }, {
   timestamps: true
 });

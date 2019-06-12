@@ -1,4 +1,5 @@
 import IStock from './stock.interface';
+import IInvestmentSummaryGroup from './investmentSummaryGroup.interface';
 
 export default interface IPosition { 
     stock: IStock; 
@@ -6,5 +7,6 @@ export default interface IPosition {
     shares: number; 
     type: string; // buy, sell
     status: string;  // new, hold, close 
-    weightPercentage?: number
+    weightPercentage?: number;
+    investmentSummaryGroups: [IInvestmentSummaryGroup];
 };

@@ -1,5 +1,7 @@
 import { PositionModel, PositionType } from '../models/position.model';
 import stockTemplates from './stock.templates';
+import investmentSummaryGroupTemplates from './investmentSummaryGroup.templates';
+import hedgeFundPositionTemplates from './hedgeFundPosition.templates';
 
 const positionTemplates: PositionType[] = [ 
     new PositionModel({ 
@@ -8,7 +10,9 @@ const positionTemplates: PositionType[] = [
         shares: 1, 
         type: 'buy', 
         status: 'new',
-        weightPercentage: 0.5
+        weightPercentage: 0.5,
+        investmentSummaryGroups: investmentSummaryGroupTemplates,
+        hedgeFundPositions: hedgeFundPositionTemplates
     }),
     new PositionModel({ 
         stock: stockTemplates[1],
@@ -16,7 +20,9 @@ const positionTemplates: PositionType[] = [
         shares: 1, 
         type: 'buy', 
         status: 'new',
-        weightPercentage: 0.5
+        weightPercentage: 0.5,
+        investmentSummaryGroups: investmentSummaryGroupTemplates,
+        hedgeFundPositions: hedgeFundPositionTemplates
     }),
     new PositionModel({ 
         stock: stockTemplates[2],
@@ -24,7 +30,9 @@ const positionTemplates: PositionType[] = [
         shares: 1, 
         type: 'buy', 
         status: 'new',
-        weightPercentage: 0.5
+        weightPercentage: 0.5,
+        investmentSummaryGroups: investmentSummaryGroupTemplates,
+        hedgeFundPositions: hedgeFundPositionTemplates
     })
 ];
 

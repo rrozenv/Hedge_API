@@ -1,4 +1,6 @@
 require('./util/environment')();
+const mongoose = require('mongoose');
+mongoose.plugin(require('@meanie/mongoose-to-json'));
 import AppController from './controllers/AppController';
 import UsersController from './controllers/UsersController';
 import StocksController from './controllers/StocksController';
@@ -9,6 +11,7 @@ import HedgeFundsController from './controllers/HedgeFundsController';
 import { PortfolioPerformanceController } from './controllers/PortfolioPerformanceController';
 
 new AppController(
+  mongoose,
   [
     new UsersController(),
     new StocksController(),
@@ -19,5 +22,3 @@ new AppController(
     new HedgeFundsController()
   ],
 );
- 
-// appController.listen();

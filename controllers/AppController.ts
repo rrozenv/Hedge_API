@@ -1,7 +1,6 @@
 // Dependencies
 require('express-async-errors');
 import express from 'express';
-import mongoose from 'mongoose';
 import config from 'config';
 import debug from 'debug';
 // Middleware
@@ -34,9 +33,11 @@ class AppController {
     public server: any;
     private log: debug.Debugger;
     private env: string;
+    private mongoose: any;
    
     // MARK: - Constructer
-    constructor(controllers: Controller[])  {
+    constructor(mongoose: any, controllers: Controller[])  {
+      this.mongoose = mongoose;
       this.app = express();
       this.log = debug('controller:app');
       this.env = this.app.get('env');
@@ -74,13 +75,13 @@ class AppController {
     // MARK: - Connect to data base
     private connectToTheDatabase() {
       const db: string = config.get('db-host');
-      mongoose.connect(db, { useNewUrlParser: true, useFindAndModify: false })
+      this.mongoose.connect(db, { useNewUrlParser: true, useFindAndModify: false })
         .then(async () => {
           this.log(`Connected to ${db}...`)
           // await this.clearDatabase();
           // await this.seedDatabase();
         })
-        .catch(err => this.log(`Could not connect to ${db}...`));
+        .catch((err: any) => this.log(`Could not connect to ${db}...: ${err}`));
     }
 
     // MARK: - Logs current environment

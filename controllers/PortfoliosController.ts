@@ -11,6 +11,7 @@ import bodyValidation from '../middleware/joi';
 import { PortfolioModel, PortfolioType } from '../models/portfolio.model';
 import { DailyPortfolioPerformanceModel, DailyPortfolioPerformanceType } from '../models/dailyPortfolioPerformance.model';
 import { StockModel, StockType } from '../models/stock.model';
+import { PositionModel } from '../models/position.model';
 // Interfaces
 import IController from '../interfaces/controller.interface';
 import IStock from '../interfaces/stock.interface';
@@ -41,7 +42,8 @@ class PortfoliosController implements IController {
     private initializeRoutes() {
       this.router.get(Path.dashboard, this.getDashboardPortfolios);
     //   this.router.get(Path.portfolios, auth, this.getPortfolios);
-    //   this.router.get(`${Path.portfolios}/:id`, [auth, validateObjectId], this.getPortfolio);
+      this.router.get(`${Path.portfolios}/:id/positions`, this.getPortfolioPositions);
+      // this.router.get(`${Path.portfolios}/:id`, [auth, validateObjectId], this.getPortfolio);
       this.router.post(Path.portfolios, [auth, bodyValidation], this.createPortfolio);
     }
 
@@ -60,6 +62,7 @@ class PortfoliosController implements IController {
                     id: port._id,
                     name: port.name,
                     description: port.description,
+                    rebalanceDate: port.rebalanceDate,
                     performance: performance,
                     positions: port.positions
                 }
@@ -68,6 +71,14 @@ class PortfoliosController implements IController {
 
         // Send response 
         res.send({ portfolios: modifiedPortfolios });
+    }
+
+    private getPortfolioPositions = async (req: any, res: any) => {
+        const positions = await PortfolioModel.findById(req.params.id)
+            .populate('positions')
+    
+        // Send response 
+        res.send(positions);
     }
 
         // MARK: - Get portfolio by id

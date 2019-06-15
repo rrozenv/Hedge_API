@@ -16,6 +16,7 @@ import { PositionModel } from '../models/position.model';
 import IController from '../interfaces/controller.interface';
 import IStock from '../interfaces/stock.interface';
 import IPortfolio from '../interfaces/portfolio.interface';
+import IDailyPortfolioPerformance from '../interfaces/dailyPortfolioPerformance.interface';
 // Services
 import IEXService from '../services/IEXService';
 import APIError from '../util/Error';
@@ -23,6 +24,7 @@ import { createChartPerformanceResponse } from './PortfolioPerformanceController
 
 // Path
 import Path from '../util/Path';
+import IPosition from '../interfaces/position.interface';
 
 // MARK: - PortfoliosController
 class PortfoliosController implements IController {
@@ -43,6 +45,7 @@ class PortfoliosController implements IController {
       this.router.get(Path.dashboard, this.getDashboardPortfolios);
     //   this.router.get(Path.portfolios, auth, this.getPortfolios);
       this.router.get(`${Path.portfolios}/:id/positions`, this.getPortfolioPositions);
+      this.router.get(`${Path.portfolios}/:id/performance/:range`, this.getPortfolioPerformance);
       // this.router.get(`${Path.portfolios}/:id`, [auth, validateObjectId], this.getPortfolio);
       this.router.post(Path.portfolios, [auth, bodyValidation], this.createPortfolio);
     }
@@ -79,6 +82,15 @@ class PortfoliosController implements IController {
     
         // Send response 
         res.send(positions);
+    }
+
+    private getPortfolioPerformance = async (req: any, res: any) => {
+        const portfolio = await PortfolioModel.findById(req.params.id)
+        if (!portfolio) return res.status(400).send(`Portfolio not found for: ${req.params.id}`)
+        const performance = await createChartPerformanceResponse(portfolio, req.params.range)
+    
+        // Send response 
+        res.send(performance);
     }
 
         // MARK: - Get portfolio by id
@@ -123,6 +135,26 @@ class PortfoliosController implements IController {
     // }
 
 
+    private createP = async (req: any, res: any) => { 
+        const name: string = req.body.name;
+        const description: string = req.body.description;
+        const rebalanceDate: string = req.body.rebalanceDate;
+        const performance: IDailyPortfolioPerformance = req.body.performance;
+        const positions: any[] = req.body.positions;
+       
+        const positionModels = positions.map((pos) => { 
+            new PositionModel({ 
+                stock: pos.stock,
+                buyPricePerShare: pos.buyPricePerShare,
+                shares: pos.shares,
+                type: pos.type,
+                status: pos.status,
+                weightPercentage: pos.weightPercentage,
+                investmentSummaryGroups: pos.investmentSummaryGroups,
+                hedgeFundPositions: pos.hedgeFundPositions
+            })
+        });
+    }
 
     /// ** ---- POST ROUTES ---- **
     // MARK: - POST API's

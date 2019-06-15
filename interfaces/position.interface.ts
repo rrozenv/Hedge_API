@@ -9,4 +9,5 @@ export default interface IPosition {
     status: string;  // new, hold, close 
     weightPercentage?: number;
     investmentSummaryGroups: [IInvestmentSummaryGroup];
+    hedgeFundPositions: string[];
 };

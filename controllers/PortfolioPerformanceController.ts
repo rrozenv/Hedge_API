@@ -69,7 +69,7 @@ const createChartPerformanceResponse = async (portfolio: PortfolioType, range: s
     const percentageReturn = calculatePercentageReturn(dailyReturnValues);
   
     return { 
-        startDate: startDate,
+        startDate: startDate ? startDate : dailyReturnValues[0].date,
         endDate: endDate,
         range: range,
         percentageReturn: percentageReturn,
@@ -81,13 +81,12 @@ const findStartDate = (range: string): Date | undefined => {
     switch (range) { 
     case 'month': 
         return moment().subtract(1, 'months').endOf('month').toDate();
-        break;
     case 'threeMonths': 
         return moment().subtract(3, 'months').endOf('month').toDate();
-        break;
+    case 'sixMonths': 
+        return moment().subtract(3, 'months').endOf('month').toDate();
     case 'year': 
         return moment().subtract(12, 'months').endOf('month').toDate();
-        break;
     default: 
         return undefined;
     }
@@ -102,7 +101,9 @@ const fetchDailyReturnValues = async (portfolio: PortfolioType, endDate: Date, s
         }
     };
  
-    return await DailyPortfolioPerformanceModel.find(query);
+    return await DailyPortfolioPerformanceModel
+        .find(query)
+        .sort('date');
 }
 
 const createChartPoints = (returnValues: DailyPortfolioPerformanceType[]): any => { 

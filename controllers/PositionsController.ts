@@ -42,7 +42,7 @@ class PositionsController implements IController {
 
     // MARK: - Get portfolio by id
     private getPosition = async (req: any, res: any) => { 
-        let position = await PositionModel.findById(req.params.id); 
+        const position = await PositionModel.findById(req.params.id); 
         if (!position) return res.status(400).send(`Position not found for: ${req.params.id}`)
         res.send(position);
     };

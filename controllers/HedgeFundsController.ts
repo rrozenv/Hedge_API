@@ -40,6 +40,8 @@ class HedgeFundsController implements IController {
     private initializeRoutes() {
       this.router.get(Path.hedgeFunds, this.getHedgeFunds);
       this.router.get(`${Path.hedgeFunds}/:id/positions`, this.getHedgeFundPositions);
+      this.router.post(Path.hedgeFunds, this.createHedgeFund);
+      this.router.post(`${Path.hedgeFunds}/:id/positions`, this.addHedgeFundPositions);
     }
 
     /// ** ---- GET ROUTES ---- **
@@ -63,6 +65,49 @@ class HedgeFundsController implements IController {
         // Send response 
         res.send({ positions: hedgeFundPositions });
     }
+
+    // MARK: - Get Positions for Hedge Fund
+    private createHedgeFund = async (req: any, res: any) => {
+      console.log('creating hedge fund...');
+      const name: string = req.body.name;
+      const manager: string = req.body.manager;
+
+      console.log(name)
+
+      const hedgeFundModel = new HedgeFundModel({ 
+        name: name,
+        manager: manager
+      })
+
+      await hedgeFundModel.save();
+
+      res.send(hedgeFundModel);
+    }
+
+       // MARK: - Get Positions for Hedge Fund
+       private addHedgeFundPositions = async (req: any, res: any) => {
+        console.log('creating hedge fund...');
+        const hedgeFund = await HedgeFundModel.findById(req.params.id)
+        if (!hedgeFund) return res.status(400).send(`Hedge fund not found for: ${req.params.id}`)
+
+        const positions: any[] = req.body.positions;
+        console.log(positions);
+
+        const positionModels =  await Promise.all( 
+          positions.map(async pos => {
+            const model = new HedgeFundPositionModel({ 
+              hedgeFund: hedgeFund,
+              stockSymbol: pos.symbol,
+              marketValue: pos.marketValue,
+              purchaseDate: pos.purchaseDate
+            })
+            await model.save();
+            return model
+          })
+        );
+       
+        res.send(positionModels);
+      }
 
 }
 

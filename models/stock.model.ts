@@ -5,31 +5,25 @@ import { quoteSchema } from './quote.model';
 const stockSchema = new mongoose.Schema({
   symbol: { 
     type: String,
-    required: true,
-    minlength: 0,
-    maxlength: 10
+    required: true
   },
   companyName: { 
       type: String,
-      required: false,
-      minlength: 0,
-      maxlength: 50
+      required: false
   },
   imageUrl: { 
     type: String,
-    required: false,
-    minlength: 0,
-    maxlength: 10000
+    required: false
   },
   sector: { 
     type: String,
     required: true,
-    enum: ['technology', 'energy', 'healthcare'],
+    enum: ['technology', 'energy', 'healthcare', 'biotech'],
     maxlength: 10000
   },
   quote: { 
     type: quoteSchema,
-    required: true
+    required: false
   }
 });
 

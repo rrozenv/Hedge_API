@@ -38,11 +38,6 @@ const positionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Ensure virtual fields are serialised.
-positionSchema.set('toJSON', {
-  virtuals: true
-});
-
 type PositionType = IPosition & mongoose.Document;
 const PositionModel = mongoose.model<PositionType>('Position', positionSchema)
 

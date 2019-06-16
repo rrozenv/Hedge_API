@@ -21,6 +21,7 @@ import IDailyPortfolioPerformance from '../interfaces/dailyPortfolioPerformance.
 import IEXService from '../services/IEXService';
 import APIError from '../util/Error';
 import { createChartPerformanceResponse } from './PortfolioPerformanceController'
+import { createPosition } from './PortfolioPositionsController'
 
 // Path
 import Path from '../util/Path';
@@ -47,7 +48,8 @@ class PortfoliosController implements IController {
       this.router.get(`${Path.portfolios}/:id/positions`, this.getPortfolioPositions);
       this.router.get(`${Path.portfolios}/:id/performance/:range`, this.getPortfolioPerformance);
       // this.router.get(`${Path.portfolios}/:id`, [auth, validateObjectId], this.getPortfolio);
-      this.router.post(Path.portfolios, [auth, bodyValidation], this.createPortfolio);
+      // this.router.post(Path.portfolios, [auth, bodyValidation], this.createPortfolio);
+      this.router.post(Path.portfolios, this.createPortfolio);
     }
 
     /// ** ---- GET ROUTES ---- **
@@ -135,61 +137,71 @@ class PortfoliosController implements IController {
     // }
 
 
-    private createP = async (req: any, res: any) => { 
+    private createPortfolio = async (req: any, res: any) => { 
         const name: string = req.body.name;
         const description: string = req.body.description;
         const rebalanceDate: string = req.body.rebalanceDate;
-        const performance: IDailyPortfolioPerformance = req.body.performance;
+        // const performance: IDailyPortfolioPerformance = req.body.performance;
         const positions: any[] = req.body.positions;
-       
-        const positionModels = positions.map((pos) => { 
-            new PositionModel({ 
-                stock: pos.stock,
-                buyPricePerShare: pos.buyPricePerShare,
-                shares: pos.shares,
-                type: pos.type,
-                status: pos.status,
-                weightPercentage: pos.weightPercentage,
-                investmentSummaryGroups: pos.investmentSummaryGroups,
-                hedgeFundPositions: pos.hedgeFundPositions
+      
+        const positionModels = await Promise.all( 
+            positions.map(async pos => { 
+                return await createPosition(pos);
             })
-        });
+        );
+        console.log(positionModels);
+        // new DailyPortfolioPerformanceModel({ 
+        //     portfolio: portfolio._id,
+        //     date: moment().subtract(2, 'months').endOf('month').toDate(),
+        //     performance: 20.0
+        // }),
+
+        const portfolio = new PortfolioModel({ 
+            name: name,
+            description: description,
+            rebalanceDate: rebalanceDate,
+            positions: positionModels
+        })
+
+        await portfolio.save();
+
+        res.send(portfolio);
     }
 
     /// ** ---- POST ROUTES ---- **
     // MARK: - POST API's
-    private createPortfolio = async (req: any, res: any) => { 
-        // Create stocks
-        const name: string = req.body.name;
-        const description: string = req.body.description;
-        const stocks: IStock[] = req.body.stocks;
+    // private createPortfolio = async (req: any, res: any) => { 
+    //     // Create stocks
+    //     const name: string = req.body.name;
+    //     const description: string = req.body.description;
+    //     const stocks: IStock[] = req.body.stocks;
 
-        try { 
-            // Create stocks 
-            const newStocks = await Promise.all(
-                stocks.map(async (stock) => await this.createStock(stock))
-            );
+    //     try { 
+    //         // Create stocks 
+    //         const newStocks = await Promise.all(
+    //             stocks.map(async (stock) => await this.createStock(stock))
+    //         );
     
-            // Create portfolio 
-            const portfolio = new PortfolioModel({ 
-                name: name,
-                description: description,
-                stocks: newStocks,
-            });
-            await portfolio.save();
+    //         // Create portfolio 
+    //         const portfolio = new PortfolioModel({ 
+    //             name: name,
+    //             description: description,
+    //             stocks: newStocks,
+    //         });
+    //         await portfolio.save();
         
-            // Return portfolio 
-            res.send(portfolio);
-        } catch (err) { 
-            // Return error if calling IEX for stock quotes fails
-            res.status(500).send(
-                new APIError(
-                    'Interal Server Error', 
-                    'Failed to fetch stock quotes for portfolio'
-                )
-            )
-        }
-    }
+    //         // Return portfolio 
+    //         res.send(portfolio);
+    //     } catch (err) { 
+    //         // Return error if calling IEX for stock quotes fails
+    //         res.status(500).send(
+    //             new APIError(
+    //                 'Interal Server Error', 
+    //                 'Failed to fetch stock quotes for portfolio'
+    //             )
+    //         )
+    //     }
+    // }
 
     /// ** ---- HELPER METHODS ---- **
     // MARK: Create stock and save

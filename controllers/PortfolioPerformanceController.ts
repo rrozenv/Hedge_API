@@ -38,6 +38,7 @@ class PortfolioPerformanceController implements IController {
    
     private initializeRoutes() {
       this.router.get(`${Path.portfolios}/:id/chart`, this.getPerformance);
+      this.router.post(`${Path.portfolios}/:id/chart`, this.createPerformance);
     }
 
     /// ** ---- GET ROUTES ---- **
@@ -57,6 +58,31 @@ class PortfolioPerformanceController implements IController {
 
         // Send response
         res.send(performanceResponse);
+    }
+
+    // MARK: - Get performance for range
+    private createPerformance = async (req: any, res: any) => {
+        // Find portfolio
+        const portfolio = await PortfolioModel.findById(req.params.id); 
+        if (!portfolio) return res.status(400).send(
+            new APIError('Bad Request', `Portfolio not found for: ${req.params.id}`)
+        );
+
+        const chartPoints: any[] = req.body.chartPoints
+
+        const performanceModels = await Promise.all( 
+            chartPoints.map(async point => { 
+                const model = new DailyPortfolioPerformanceModel({ 
+                    portfolio: portfolio._id,
+                    date: point.date,
+                    performance: point.performance
+                });
+                await model.save();
+                return model;
+            })
+        );
+
+        res.send(performanceModels);
     }
 
 }
@@ -80,11 +106,12 @@ const createChartPerformanceResponse = async (portfolio: PortfolioType, range: s
 const findStartDate = (range: string): Date | undefined => { 
     switch (range) { 
     case 'month': 
-        return moment().subtract(1, 'months').endOf('month').toDate();
+        return moment().subtract(2, 'months').endOf('month').toDate();
     case 'threeMonths': 
-        return moment().subtract(3, 'months').endOf('month').toDate();
+        console.log(moment().subtract(4, 'months').endOf('month').toDate());
+        return moment().subtract(4, 'months').endOf('month').toDate();
     case 'sixMonths': 
-        return moment().subtract(3, 'months').endOf('month').toDate();
+        return moment().subtract(6, 'months').endOf('month').toDate();
     case 'year': 
         return moment().subtract(12, 'months').endOf('month').toDate();
     default: 
@@ -100,7 +127,7 @@ const fetchDailyReturnValues = async (portfolio: PortfolioType, endDate: Date, s
             ...startDate && { $gte: startDate }
         }
     };
- 
+    
     return await DailyPortfolioPerformanceModel
         .find(query)
         .sort('date');
@@ -117,7 +144,7 @@ const createChartPoints = (returnValues: DailyPortfolioPerformanceType[]): any =
 
 const calculatePercentageReturn = (returnValues: DailyPortfolioPerformanceType[]): number => { 
     return returnValues.reduce((sum, val) => { 
-        return sum + val.performance
+        return sum + (val.performance)
     }, 0) / returnValues.length
 }
 

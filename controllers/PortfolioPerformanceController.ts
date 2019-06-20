@@ -93,10 +93,11 @@ const createChartPerformanceResponse = async (portfolio: PortfolioType, range: s
     const dailyReturnValues = await fetchDailyReturnValues(portfolio, endDate, startDate);
     const chartPoints = createChartPoints(dailyReturnValues);
     const percentageReturn = calculatePercentageReturn(dailyReturnValues);
-  
+    const start = moment(dailyReturnValues[0].date).startOf('month').toDate();
+
     return { 
-        startDate: startDate ? startDate : dailyReturnValues[0].date,
-        endDate: endDate,
+        startDate: start,
+        endDate: dailyReturnValues[dailyReturnValues.length - 1].date,
         range: range,
         percentageReturn: percentageReturn,
         chart: { points: chartPoints }
@@ -108,12 +109,11 @@ const findStartDate = (range: string): Date | undefined => {
     case 'month': 
         return moment().subtract(2, 'months').endOf('month').toDate();
     case 'threeMonths': 
-        console.log(moment().subtract(4, 'months').endOf('month').toDate());
         return moment().subtract(4, 'months').endOf('month').toDate();
     case 'sixMonths': 
-        return moment().subtract(6, 'months').endOf('month').toDate();
+        return moment().subtract(7, 'months').endOf('month').toDate();
     case 'year': 
-        return moment().subtract(12, 'months').endOf('month').toDate();
+        return moment().subtract(13, 'months').endOf('month').toDate();
     default: 
         return undefined;
     }
@@ -136,16 +136,17 @@ const fetchDailyReturnValues = async (portfolio: PortfolioType, endDate: Date, s
 const createChartPoints = (returnValues: DailyPortfolioPerformanceType[]): any => { 
     return returnValues.map((val) => { 
         return { 
-            xValue: val.date.toISOString(),
+            xValue: val.date.toJSON(),
             yValue: val.performance
         }
     });
 }
 
 const calculatePercentageReturn = (returnValues: DailyPortfolioPerformanceType[]): number => { 
-    return returnValues.reduce((sum, val) => { 
-        return sum + (val.performance)
-    }, 0) / returnValues.length
+    const endingValue = returnValues.reduce((sum, val) => { 
+        return sum * (1+ val.performance)
+    }, 1);
+    return endingValue - 1
 }
 
 export { PortfolioPerformanceController, createChartPerformanceResponse }

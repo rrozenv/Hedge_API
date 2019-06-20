@@ -113,7 +113,7 @@ class AppController {
         await PortfolioModel.collection.deleteMany({});
         await StockModel.collection.deleteMany({});
         // await UserModel.collection.deleteMany({});
-        await QuoteModel.collection.deleteMany({});
+       await QuoteModel.collection.deleteMany({});
         await WatchlistModel.collection.deleteMany({});
         await DailyPortfolioPerformanceModel.collection.deleteMany({});
       }

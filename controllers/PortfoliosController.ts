@@ -58,11 +58,11 @@ class PortfoliosController implements IController {
     private getDashboardPortfolios = async (req: any, res: any) => {
         // Find portfolios
         const portfolios = await PortfolioModel.find() 
-
+        
         // Create response 
         const modifiedPortfolios = await Promise.all(
             portfolios.map(async (port) => { 
-                const performance = await createChartPerformanceResponse(port, 'year')
+                const performance = await createChartPerformanceResponse(port, req.query.range)
                 return { 
                     id: port._id,
                     name: port.name,

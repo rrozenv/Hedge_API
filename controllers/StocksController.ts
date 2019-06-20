@@ -16,53 +16,124 @@ import Path from '../util/Path';
 
 // MARK: - StocksController
 class StocksController implements IController {
-    
-    // MARK: - Properties
-    public path = '/stocks';
-    public router = express.Router({});
-    private iex_service: IEXService;
-   
-    // MARK: - Constructor
-    constructor() {
-      this.iex_service = new IEXService();
-      this.initializeRoutes();
+
+  // MARK: - Properties
+  public path = '/stocks';
+  public router = express.Router({});
+  private iex_service: IEXService;
+
+  // MARK: - Constructor
+  constructor() {
+    this.iex_service = new IEXService();
+    this.initializeRoutes();
+  }
+
+  // MARK: - Create routes
+  private initializeRoutes() {
+    this.router.get(`${Path.stocks}/:ticker`, this.getStockQuote);
+    this.router.get(`${Path.stocks}/:ticker/performance/:range`, this.getStockChart);
+    this.router.get(`${Path.stocks}/:id`, this.getPrimaryStockData);
+  }
+
+  /// ** ---- GET ROUTES ---- **
+  private getStockQuote = async (req: any, res: any) => {
+    try {
+      const quote = await this.iex_service.fetchQuote(req.params.ticker)
+      res.send(quote);
+    } catch (error) {
+      console.log(error);
+      res.status(400).send(
+        new APIError(
+          'Bad Request',
+          `Request failed for stock: ${req.params.ticker}`
+        )
+      );
     }
-   
-    // MARK: - Create routes
-    private initializeRoutes() {
-      this.router.get(`${Path.stocks}/:id`, this.getPrimaryStockData);
+  };
+
+  private getStockChart = async (req: any, res: any) => {
+    try {
+      const chartData: any[] = await this.iex_service.fetchChart(req.params.ticker, req.params.range);
+      const chartPoints = chartData.map((item) => {
+        if (item.close == undefined) return undefined
+        return {
+          xValue: item.date,
+          yValue: item.close
+        }
+      })
+        .filter(item => item);
+
+      const firstChartPoint = chartPoints[0]
+      const lastChartPoint = chartPoints[chartPoints.length - 1]
+      const percentageReturn = (lastChartPoint!.yValue - firstChartPoint!.yValue) / firstChartPoint!.yValue
+
+      res.send({
+        startDate: firstChartPoint!.xValue,
+        endDate: lastChartPoint!.xValue,
+        range: req.params.range,
+        percentageReturn: percentageReturn,
+        dollarValue: lastChartPoint!.yValue,
+        chart: { points: chartPoints }
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(400).send(
+        new APIError(
+          'Bad Request',
+          `Request failed for stock: ${req.params.ticker}`
+        )
+      );
     }
 
-    /// ** ---- GET ROUTES ---- **
-    // MARK: - Get portfolio by id
-    private getPrimaryStockData = async (req: any, res: any) => { 
-         // Find portfolios
-         const stock = await StockModel.findById(req.params.id)
-         if (!stock) return res.status(400).send(
-           new APIError('Bad Request', `Stock not found for: ${req.params.id}`)
-         );
-         
-         const quote = await this.iex_service.fetchQuotes([stock.symbol], ['quote'])
-         stock.quote = quote[0]
- 
-         // Send response 
-         res.send(stock);
-    };
 
-        // MARK: - Get portfolio by id
-        private getStockInvestmentSummary = async (req: any, res: any) => { 
-          // Find portfolios
-          const stock = await StockModel.findById(req.params.id)
-          if (!stock) return res.status(400).send(
-            new APIError('Bad Request', `Stock not found for: ${req.params.id}`)
-          );
-          
-          const quote = await this.iex_service.fetchQuotes([stock.symbol], ['quote'])
-          stock.quote = quote[0]
-  
-          // Send response 
-          res.send(stock);
-     };
+
+
+    // try { 
+    //     const chartData = await this.iex_service.fetchChart(req.params.ticker, req.params.range);
+    //     // Take first and last price to calc return 
+    //     const data = { 
+    //       startDate: chartData[0].date,
+    //       endDate: chartData[chartData.length - 1].date,
+    //       range: req.params.range,
+    //       percentageReturn: percentageReturn,
+    //       chart: { points: chartPoints }
+    //   }
+
+    //   res.send(data);
+    // } catch(error) { 
+    //     console.log(error);
+    // }
+  };
+
+  // MARK: - Get portfolio by id
+  private getPrimaryStockData = async (req: any, res: any) => {
+    // Find portfolios
+    const stock = await StockModel.findById(req.params.id)
+    if (!stock) return res.status(400).send(
+      new APIError('Bad Request', `Stock not found for: ${req.params.id}`)
+    );
+
+    const quote = await this.iex_service.fetchQuotes([stock.symbol], ['quote'])
+    stock.quote = quote[0]
+
+    // Send response 
+    res.send(stock);
+  };
+
+  // MARK: - Get portfolio by id
+  private getStockInvestmentSummary = async (req: any, res: any) => {
+    // Find portfolios
+    const stock = await StockModel.findById(req.params.id)
+    if (!stock) return res.status(400).send(
+      new APIError('Bad Request', `Stock not found for: ${req.params.id}`)
+    );
+
+    const quote = await this.iex_service.fetchQuotes([stock.symbol], ['quote'])
+    stock.quote = quote[0]
+
+    // Send response 
+    res.send(stock);
+  };
 
 }
 

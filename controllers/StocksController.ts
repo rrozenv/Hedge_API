@@ -54,29 +54,27 @@ class StocksController implements IController {
   private getStockChart = async (req: any, res: any) => {
     try {
       const chartData: any[] = await this.iex_service.fetchChart(req.params.ticker, req.params.range);
-      const chartPoints = chartData.map((item) => {
-        if (item.close == undefined) return undefined
+      const filteredChartData = chartData.filter(item => item.close != undefined);
+      const chartPoints = filteredChartData.map((item) => {
         return {
           xValue: item.date,
           yValue: item.close
         }
       })
-        .filter(item => item);
 
-      const firstChartPoint = chartPoints[0]
-      const lastChartPoint = chartPoints[chartPoints.length - 1]
-      const percentageReturn = (lastChartPoint!.yValue - firstChartPoint!.yValue) / firstChartPoint!.yValue
+      const firstChartPoint = filteredChartData[0]
+      const lastChartPoint = filteredChartData[filteredChartData.length - 1]
+      const percentageReturn = (lastChartPoint.close - firstChartPoint.open) / firstChartPoint.open
 
       res.send({
-        startDate: firstChartPoint!.xValue,
-        endDate: lastChartPoint!.xValue,
+        startDate: firstChartPoint.date,
+        endDate: lastChartPoint.date,
         range: req.params.range,
         percentageReturn: percentageReturn,
-        dollarValue: lastChartPoint!.yValue,
+        dollarValue: lastChartPoint!.close,
         chart: { points: chartPoints }
       });
     } catch (error) {
-      console.log(error);
       res.status(400).send(
         new APIError(
           'Bad Request',

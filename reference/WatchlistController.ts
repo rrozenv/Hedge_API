@@ -19,7 +19,7 @@ import Path from '../util/Path';
 
 // MARK: - WatchlistsController
 class WatchlistsController implements IController {
-    
+
     // MARK: - Properties
     public router = express.Router({});
     private iex_service: IEXService;
@@ -27,20 +27,20 @@ class WatchlistsController implements IController {
 
     // MARK: - Constructor
     constructor() {
-      this.iex_service = new IEXService();
-      this.log = debug('controller:watchlists');
-      this.initializeRoutes();
+        this.iex_service = new IEXService();
+        this.log = debug('controller:watchlists');
+        this.initializeRoutes();
     }
-   
+
     // MARK: - Create Routes
     private initializeRoutes() {
-      this.router.get(Path.watchlists, auth, this.getWatchlists);
-      this.router.post(Path.watchlists, [auth, bodyValidation], this.createWatchlist);
+        this.router.get(Path.watchlists, auth, this.getWatchlists);
+        this.router.post(Path.watchlists, [auth, bodyValidation], this.createWatchlist);
     }
 
     /// ** ---- GET ROUTES ---- **
     // MARK: - Get all users watchlists
-    private getWatchlists = async (req: any, res: any) => { 
+    private getWatchlists = async (req: any, res: any) => {
         const watchlists = await WatchlistModel
             .find({ user: req.user })
             .populate('positions')
@@ -50,13 +50,13 @@ class WatchlistsController implements IController {
 
     /// ** ---- POST ROUTES ---- **
     // MARK: - Create watchlist
-    private createWatchlist = async (req: any, res: any) => { 
+    private createWatchlist = async (req: any, res: any) => {
         const name: string = req.body.name;
         const positions: IPosition[] = req.body.positions;
-        
+
         // Create and save position models
-        const positionModels = positions.map((p) => { 
-            return new PositionModel({ 
+        const positionModels = positions.map((p) => {
+            return new PositionModel({
                 stock: p.stock,
                 buyPricePerShare: p.buyPricePerShare,
                 shares: p.shares,
@@ -65,7 +65,7 @@ class WatchlistsController implements IController {
         const savedPositions = await PositionModel.collection.insertMany(positionModels);
 
         // Create watchlist with positions
-        const watchlist = new WatchlistModel({ 
+        const watchlist = new WatchlistModel({
             name: name,
             user: req.user,
             positions: savedPositions.ops
@@ -73,7 +73,7 @@ class WatchlistsController implements IController {
         await watchlist.save();
 
         // Return watchlist 
-        res.send({ 
+        res.send({
             ...watchlist.toObject(),
             positions: savedPositions.ops
         });

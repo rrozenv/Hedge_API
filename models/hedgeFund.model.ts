@@ -2,11 +2,11 @@ import mongoose from 'mongoose';
 import IHedgeFund from '../interfaces/hedgeFund.interface';
 
 const hedgeFundSchema = new mongoose.Schema({
-  name: {  
-    type: String,  
+  name: {
+    type: String,
     required: true
   },
-  manager: { 
+  manager: {
     type: String,
     required: true
   }

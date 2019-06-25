@@ -1,4 +1,4 @@
-export default interface IHedgeFund { 
+export default interface IHedgeFund {
     name: string;
-    manager: string; 
+    manager: string;
 };

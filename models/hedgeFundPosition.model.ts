@@ -2,28 +2,28 @@ import mongoose from 'mongoose';
 import IHedgeFundPosition from '../interfaces/hedgeFundPosition.interface';
 
 const hedgeFundPositionSchema = new mongoose.Schema({
-  hedgeFund: { 
-    type: new mongoose.Schema({ 
-        name: { 
-            type: String,
-            required: true
-        }, 
-        manager: { 
-            type: String,
-            required: true
-        }
+  hedgeFund: {
+    type: new mongoose.Schema({
+      name: {
+        type: String,
+        required: true
+      },
+      manager: {
+        type: String,
+        required: true
+      }
     }),
     required: true
   },
-  stockSymbol: { 
+  stockSymbol: {
     type: String,
     required: true
   },
-  marketValue: { 
+  marketValue: {
     type: Number,
     required: true
   },
-  purchaseDate: { 
+  purchaseDate: {
     type: Date,
     required: true
   }

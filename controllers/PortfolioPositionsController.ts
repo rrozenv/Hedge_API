@@ -37,7 +37,8 @@ class PortfolioPositionsController implements IController {
   }
 
   private initializeRoutes() {
-    this.router.get(`${Path.positions}/:id/hedgeFundPositions`, this.getHedgeFundPositions);
+    // GET
+    this.router.get(`${Path.positions}/:id/hedgeFundPositions`, [auth, validateObjectId], this.getHedgeFundPositions);
   }
 
   /// ** ---- GET ROUTES ---- **

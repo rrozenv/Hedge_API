@@ -1,4 +1,4 @@
-export default interface IQuote { 
+export default interface IQuote {
     symbol: string,
     companyName?: string
     latestPrice: number,

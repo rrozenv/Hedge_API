@@ -6,5 +6,5 @@ interface ITwilioPhoneResponse {
     uuid: string,
     success: boolean
 }
-   
+
 export default ITwilioPhoneResponse;

@@ -1,5 +1,5 @@
-export default interface IHedgeFundPosition { 
-    hedgeFund: { 
+export default interface IHedgeFundPosition {
+    hedgeFund: {
         name: string,
         manager: string
     };

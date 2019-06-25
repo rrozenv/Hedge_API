@@ -1,9 +1,9 @@
 import Joi from 'joi';
 import quoteSchema from './quote.schema';
 
-const basicStockSchema = Joi.object().keys({ 
+const basicStockSchema = Joi.object().keys({
     symbol: Joi.string().min(1).max(5).required(),
-    imageUrl: Joi.string().min(1), 
+    imageUrl: Joi.string().min(1),
     sector: Joi.string().valid('technology', 'energy').required(),
 });
 
@@ -17,7 +17,7 @@ const stockWithQuoteSchema = basicStockSchema
 //     quote: quoteSchema.required()
 // })
 
-export { 
+export {
     basicStockSchema,
     stockWithQuoteSchema
 }

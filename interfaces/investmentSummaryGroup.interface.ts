@@ -1,5 +1,5 @@
 
-export default interface IInvestmentSummaryGroup { 
+export default interface IInvestmentSummaryGroup {
     title: string;
-    body: string; 
+    body: string;
 };

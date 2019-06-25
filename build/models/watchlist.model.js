@@ -16,11 +16,11 @@ var watchlistSchema = new mongoose_1.default.Schema({
         ref: 'User'
     },
     positions: [{
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'Position'
-        }]
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Position'
+    }]
 }, {
-    timestamps: true
-});
+        timestamps: true
+    });
 var WatchlistModel = mongoose_1.default.model('Watchlist', watchlistSchema);
 exports.WatchlistModel = WatchlistModel;

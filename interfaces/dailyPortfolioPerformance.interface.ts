@@ -1,6 +1,6 @@
 
-export default interface IDailyPortfolioPerformance { 
+export default interface IDailyPortfolioPerformance {
     portfolio: string;
-    date: Date; 
-    performance: number; 
+    date: Date;
+    performance: number;
 };

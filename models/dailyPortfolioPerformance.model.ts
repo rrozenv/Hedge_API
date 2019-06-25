@@ -2,16 +2,16 @@ import mongoose from 'mongoose';
 import IDailyPortfolioPerformance from '../interfaces/dailyPortfolioPerformance.interface';
 
 const dailyPortfolioPerformanceModelSchema = new mongoose.Schema({
-  portfolio: { 
+  portfolio: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Portfolio',
     required: true
   },
-  date: { 
+  date: {
     type: Date,
     required: true
   },
-  performance: { 
+  performance: {
     type: Number,
     required: true
   }

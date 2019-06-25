@@ -18,7 +18,7 @@ var positionSchema = new mongoose_1.default.Schema({
         required: true
     },
 }, {
-    timestamps: true
-});
+        timestamps: true
+    });
 var PositionModel = mongoose_1.default.model('Position', positionSchema);
 exports.PositionModel = PositionModel;

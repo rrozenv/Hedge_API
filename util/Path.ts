@@ -1,5 +1,6 @@
 
-class Path { 
+class Path {
+    public static benchmarks = '/benchmarks'
     public static dashboard = '/dashboard'
     public static portfolios = '/portfolios'
     public static positions = '/positions'

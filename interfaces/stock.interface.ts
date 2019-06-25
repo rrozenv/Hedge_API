@@ -1,8 +1,8 @@
 import IQuote from './quote.interface'
 
-export default interface IStock { 
+export default interface IStock {
     symbol: string,
-    imageUrl: string; 
+    imageUrl: string;
     sector: string;
     quote?: IQuote;
 };

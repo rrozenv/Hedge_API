@@ -7,18 +7,19 @@ import ITwilioCodeResponse from '../interfaces/twilioCodeResponse.interface';
 const sendCodePath = "/phones/verification/start";
 const verifyCodePath = "/phones/verification/check";
 const baseUrl = config.get('twilio-base-url');
-const apiKey = config.get('twilioKey');
+const apiKey: string = config.get('twilioKey');
 
-class TwilioService { 
+class TwilioService {
 
     // MARK: - Send verification code 
     async sendVerificationCodeTo(phoneNumber: string, countryCode: string, via: string): Promise<ITwilioPhoneResponse> {
         const payload = await request
             .post(`${baseUrl}${sendCodePath}`)
             .send({ phone_number: phoneNumber, country_code: countryCode, via: via })
-            .set({ 'X-Authy-API-Key': apiKey, Accept: 'application/json' })
+            .set('X-Authy-API-Key', 'hy73bYkNMyWpgCFAWaKGCDDlFDkTxy3u')
+            .set('Accept', 'application/json');
 
-        return { 
+        return {
             carrier: payload.body.carrier,
             is_cellphone: payload.body.is_cellphone,
             message: payload.body.message,
@@ -29,12 +30,13 @@ class TwilioService {
     }
 
     // MARK: - Validate verification code 
-    async validateVerificationCode(phoneNumber: string, countryCode: string, code: string): Promise<ITwilioCodeResponse> { 
+    async validateVerificationCode(phoneNumber: string, countryCode: string, code: string): Promise<ITwilioCodeResponse> {
         const payload = await request
-            .get(`${baseUrl}`)
+            .get(`${baseUrl}${verifyCodePath}`)
             .query({ phone_number: phoneNumber, country_code: countryCode, verification_code: code })
+            .set('X-Authy-API-Key', 'hy73bYkNMyWpgCFAWaKGCDDlFDkTxy3u');
 
-        return { 
+        return {
             message: payload.body.message,
             success: payload.body.success
         };

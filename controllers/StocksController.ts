@@ -82,25 +82,6 @@ class StocksController implements IController {
         )
       );
     }
-
-
-
-
-    // try { 
-    //     const chartData = await this.iex_service.fetchChart(req.params.ticker, req.params.range);
-    //     // Take first and last price to calc return 
-    //     const data = { 
-    //       startDate: chartData[0].date,
-    //       endDate: chartData[chartData.length - 1].date,
-    //       range: req.params.range,
-    //       percentageReturn: percentageReturn,
-    //       chart: { points: chartPoints }
-    //   }
-
-    //   res.send(data);
-    // } catch(error) { 
-    //     console.log(error);
-    // }
   };
 
   // MARK: - Get portfolio by id

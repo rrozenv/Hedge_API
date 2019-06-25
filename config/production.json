@@ -1,4 +1,4 @@
-{ 
+{
     "name": "My app - Prod",
     "db-host": "mongodb://localhost/hedge",
     "iex-base-url": "https://cloud.iexapis.com",

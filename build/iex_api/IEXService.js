@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function () { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function () { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -53,19 +53,19 @@ var IEXService = /** @class */ (function () {
                         if (tickers.length == 0)
                             throw 'Tickers length is 0';
                         return [4 /*yield*/, superagent_1.default
-                                .get(config_1.default.get('iex-base-url') + "/stock/market/batch")
-                                .query({ types: types.join(','), symbols: tickers.join(',') })];
+                            .get(config_1.default.get('iex-base-url') + "/stock/market/batch")
+                            .query({ types: types.join(','), symbols: tickers.join(',') })];
                     case 1:
                         payload = _a.sent();
                         return [2 /*return*/, tickers.map(function (ticker) {
-                                var symbol = ticker.toUpperCase();
-                                return new quote_model_1.QuoteModel({
-                                    symbol: payload.body[symbol].quote.symbol,
-                                    companyName: payload.body[symbol].quote.companyName,
-                                    latestPrice: payload.body[symbol].quote.latestPrice,
-                                    changePercent: payload.body[symbol].quote.changePercent
-                                });
-                            })];
+                            var symbol = ticker.toUpperCase();
+                            return new quote_model_1.QuoteModel({
+                                symbol: payload.body[symbol].quote.symbol,
+                                companyName: payload.body[symbol].quote.companyName,
+                                latestPrice: payload.body[symbol].quote.latestPrice,
+                                changePercent: payload.body[symbol].quote.changePercent
+                            });
+                        })];
                 }
             });
         });

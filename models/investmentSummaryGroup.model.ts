@@ -2,11 +2,11 @@ import mongoose from 'mongoose';
 import IInvestmentSummaryGroup from '../interfaces/investmentSummaryGroup.interface';
 
 const investmentSummaryGroupSchema = new mongoose.Schema({
-  title: {  
-    type: String,  
+  title: {
+    type: String,
     required: true
   },
-  body: { 
+  body: {
     type: String,
     required: true
   }

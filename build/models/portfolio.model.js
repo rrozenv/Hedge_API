@@ -18,11 +18,11 @@ var portfolioSchema = new mongoose_1.default.Schema({
         maxlength: 10000
     },
     stocks: [{
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'Stock'
-        }]
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Stock'
+    }]
 }, {
-    timestamps: true
-});
+        timestamps: true
+    });
 var PortfolioModel = mongoose_1.default.model('Portfolio', portfolioSchema);
 exports.PortfolioModel = PortfolioModel;

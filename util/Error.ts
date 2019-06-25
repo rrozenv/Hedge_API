@@ -1,11 +1,11 @@
-class APIError { 
-     header: string;
-     message: string;
+class APIError {
+    header: string;
+    message: string;
 
-     constructor(header: string, message: string) { 
-         this.header = header;
-         this.message = message;
-     } 
+    constructor(header: string, message: string) {
+        this.header = header;
+        this.message = message;
+    }
 }
 
 export default APIError;

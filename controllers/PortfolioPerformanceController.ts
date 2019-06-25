@@ -11,6 +11,7 @@ import bodyValidation from '../middleware/joi';
 import { PortfolioModel, PortfolioType } from '../models/portfolio.model';
 import { DailyPortfolioPerformanceModel, DailyPortfolioPerformanceType } from '../models/dailyPortfolioPerformance.model';
 import { StockModel, StockType } from '../models/stock.model';
+import { BenchmarkPerformanceModel } from '../models/benchmarkPerformance.model';
 // Interfaces
 import IController from '../interfaces/controller.interface';
 import IStock from '../interfaces/stock.interface';
@@ -21,33 +22,41 @@ import APIError from '../util/Error';
 // Path
 import Path from '../util/Path';
 
+interface IPerformance {
+    date: Date;
+    performance: number;
+};
+
 // MARK: - PortfoliosController
 class PortfolioPerformanceController implements IController {
-    
+
     // MARK: - Properties
     public router = express.Router({});
     private iex_service: IEXService;
     private log: debug.Debugger;
-   
+
     // MARK: - Constructor
     constructor() {
-      this.iex_service = new IEXService();
-      this.log = debug('controller:portfolioPerformance');
-      this.initializeRoutes();
+        this.iex_service = new IEXService();
+        this.log = debug('controller:portfolioPerformance');
+        this.initializeRoutes();
     }
-   
+
     private initializeRoutes() {
-      this.router.get(`${Path.portfolios}/:id/chart`, this.getPerformance);
-      this.router.post(`${Path.portfolios}/:id/chart`, this.createPerformance);
+        // GET 
+        this.router.get(`${Path.portfolios}/:id/chart`, [auth, validateObjectId], this.getPerformance);
+
+        // POST
+        this.router.post(`${Path.portfolios}/:id/chart`, [auth, validateObjectId], this.createPerformance);
+        this.router.post(`${Path.benchmarks}/:type/chart`, [auth, validateObjectId], this.createBenchmarkPerformance);
     }
 
     /// ** ---- GET ROUTES ---- **
 
     // MARK: - Get performance for range
     private getPerformance = async (req: any, res: any) => {
-        
         // Find portfolio
-        const portfolio = await PortfolioModel.findById(req.params.id); 
+        const portfolio = await PortfolioModel.findById(req.params.id);
         if (!portfolio) return res.status(400).send(
             new APIError('Bad Request', `Portfolio not found for: ${req.params.id}`)
         );
@@ -60,19 +69,21 @@ class PortfolioPerformanceController implements IController {
         res.send(performanceResponse);
     }
 
+    /// ** ---- POST ROUTES ---- **
+
     // MARK: - Get performance for range
     private createPerformance = async (req: any, res: any) => {
-        // Find portfolio
-        const portfolio = await PortfolioModel.findById(req.params.id); 
+        // Find portfolio by id.
+        const portfolio = await PortfolioModel.findById(req.params.id);
         if (!portfolio) return res.status(400).send(
             new APIError('Bad Request', `Portfolio not found for: ${req.params.id}`)
         );
 
+        // Create performance points.
         const chartPoints: any[] = req.body.chartPoints
-
-        const performanceModels = await Promise.all( 
-            chartPoints.map(async point => { 
-                const model = new DailyPortfolioPerformanceModel({ 
+        const performanceModels = await Promise.all(
+            chartPoints.map(async point => {
+                const model = new DailyPortfolioPerformanceModel({
                     portfolio: portfolio._id,
                     date: point.date,
                     performance: point.performance
@@ -82,69 +93,114 @@ class PortfolioPerformanceController implements IController {
             })
         );
 
+        // Send response. 
+        res.send(performanceModels);
+    }
+
+    // MARK: - Create benchmark performance for type. 
+    private createBenchmarkPerformance = async (req: any, res: any) => {
+        // Create benchmark chart points.
+        const chartPoints: any[] = req.body.chartPoints
+        const performanceModels = await Promise.all(
+            chartPoints.map(async point => {
+                const model = new BenchmarkPerformanceModel({
+                    type: req.params.type,
+                    date: point.date,
+                    performance: point.performance
+                });
+                await model.save();
+                return model;
+            })
+        );
+
+        // Send response. 
         res.send(performanceModels);
     }
 
 }
 
-const createChartPerformanceResponse = async (portfolio: PortfolioType, range: string) => { 
+const createChartPerformanceResponse = async (portfolio: PortfolioType, range: string) => {
     const startDate = findStartDate(range);
     const endDate = moment().toDate();
-    const dailyReturnValues = await fetchDailyReturnValues(portfolio, endDate, startDate);
-    const chartPoints = createChartPoints(dailyReturnValues);
-    const percentageReturn = calculatePercentageReturn(dailyReturnValues);
-    const start = moment(dailyReturnValues[0].date).startOf('month').toDate();
 
-    return { 
-        startDate: start,
-        endDate: dailyReturnValues[dailyReturnValues.length - 1].date,
+    const query = {
+        portfolio: portfolio,
+        date: {
+            $lte: endDate,
+            ...startDate && { $gte: startDate }
+        }
+    };
+
+    const chartPointModels = await DailyPortfolioPerformanceModel
+        .find(query)
+        .sort('date');
+
+    const chartPoints = createChartPoints(chartPointModels);
+    const percentageReturn = calculatePercentageReturn(chartPointModels);
+    const benchmarkPerformance = await createBenchmarkPerformanceResponse(portfolio.benchmarkType, endDate, startDate);
+
+    return {
+        startDate: moment(chartPointModels[0].date).startOf('month').toDate(),
+        endDate: chartPointModels[chartPointModels.length - 1].date,
         range: range,
+        percentageReturn: percentageReturn,
+        chart: { points: chartPoints },
+        benchmark: benchmarkPerformance
+    }
+}
+
+const findStartDate = (range: string): Date | undefined => {
+    switch (range) {
+        case 'month':
+            return moment().subtract(2, 'months').endOf('month').toDate();
+        case 'threeMonths':
+            return moment().subtract(4, 'months').endOf('month').toDate();
+        case 'sixMonths':
+            return moment().subtract(7, 'months').endOf('month').toDate();
+        case 'year':
+            return moment().subtract(13, 'months').endOf('month').toDate();
+        default:
+            return undefined;
+    }
+}
+
+const createBenchmarkPerformanceResponse = async (type: string, endDate: Date, startDate?: Date) => {
+    const query = {
+        type: type,
+        date: {
+            $lte: endDate,
+            ...startDate && { $gte: startDate }
+        }
+    };
+    console.log(`fetching benchmark: ${type}`);
+    const benchmarkModels = await BenchmarkPerformanceModel
+        .find(query)
+        .sort('date');
+    console.log(`found models: ${benchmarkModels}`);
+    const percentageReturn = calculatePercentageReturn(benchmarkModels);
+    const chartPoints = createChartPoints(benchmarkModels);
+
+    return {
+        type: type,
         percentageReturn: percentageReturn,
         chart: { points: chartPoints }
     }
 }
 
-const findStartDate = (range: string): Date | undefined => { 
-    switch (range) { 
-    case 'month': 
-        return moment().subtract(2, 'months').endOf('month').toDate();
-    case 'threeMonths': 
-        return moment().subtract(4, 'months').endOf('month').toDate();
-    case 'sixMonths': 
-        return moment().subtract(7, 'months').endOf('month').toDate();
-    case 'year': 
-        return moment().subtract(13, 'months').endOf('month').toDate();
-    default: 
-        return undefined;
-    }
-}
-
-const fetchDailyReturnValues = async (portfolio: PortfolioType, endDate: Date, startDate?: Date) => { 
-    const query = { 
-        portfolio: portfolio, 
-        date: { 
-            $lte: endDate,
-            ...startDate && { $gte: startDate }
-        }
-    };
-    
-    return await DailyPortfolioPerformanceModel
-        .find(query)
-        .sort('date');
-}
-
-const createChartPoints = (returnValues: DailyPortfolioPerformanceType[]): any => { 
-    return returnValues.map((val) => { 
-        return { 
+const createChartPoints = (returnValues: IPerformance[]): any => {
+    let sum = 1000
+    return returnValues.map((val) => {
+        sum = sum * (1 + val.performance)
+        return {
             xValue: val.date.toJSON(),
-            yValue: val.performance
+            yValue: sum - 1000
         }
     });
 }
 
-const calculatePercentageReturn = (returnValues: DailyPortfolioPerformanceType[]): number => { 
-    const endingValue = returnValues.reduce((sum, val) => { 
-        return sum * (1+ val.performance)
+const calculatePercentageReturn = (returnValues: IPerformance[]): number => {
+    const endingValue = returnValues.reduce((sum, val) => {
+        return sum * (1 + val.performance)
     }, 1);
     return endingValue - 1
 }

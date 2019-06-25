@@ -3,13 +3,13 @@ import IWatchlist from '../interfaces/watchlist.interface';
 // import { positionSchema } from './position.model';
 
 const watchlistSchema = new mongoose.Schema({
-  name: { 
+  name: {
     type: String,
     required: true,
     minlength: 0,
     maxlength: 50
   },
-  user: { 
+  user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
@@ -19,8 +19,8 @@ const watchlistSchema = new mongoose.Schema({
     ref: 'Position'
   }]
 }, {
-  timestamps: true
-});
+    timestamps: true
+  });
 
 type WatchlistType = IWatchlist & mongoose.Document;
 const WatchlistModel = mongoose.model<WatchlistType>('Watchlist', watchlistSchema)

@@ -2,13 +2,13 @@ import mongoose from 'mongoose';
 import IQuote from '../interfaces/quote.interface';
 
 const quoteSchema = new mongoose.Schema({
-    latestPrice: { 
+    latestPrice: {
         type: Number,
         required: true,
         minlength: 0,
         maxlength: 50
     },
-    changePercent: { 
+    changePercent: {
         type: Number,
         required: true,
         minlength: 0,

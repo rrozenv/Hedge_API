@@ -4,20 +4,24 @@ import { stockSchema } from './stock.model';
 import { positionSchema } from './position.model';
 
 const portfolioSchema = new mongoose.Schema({
-  name: { 
+  name: {
     type: String,
     required: true,
     minlength: 0,
     maxlength: 50
   },
-  description: { 
+  description: {
     type: String,
     required: true,
     minlength: 0,
     maxlength: 10000
   },
-  rebalanceDate: { 
+  rebalanceDate: {
     type: Date,
+    required: true
+  },
+  benchmarkType: {
+    type: String,
     required: true
   },
   positions: [{
@@ -25,8 +29,8 @@ const portfolioSchema = new mongoose.Schema({
     ref: 'Position'
   }]
 }, {
-  timestamps: true
-});
+    timestamps: true
+  });
 
 type PortfolioType = IPortfolio & mongoose.Document;
 const PortfolioModel = mongoose.model<PortfolioType>('Portfolio', portfolioSchema)

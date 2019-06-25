@@ -4,31 +4,37 @@ import IToken from '../interfaces/token.interface';
 
 // Schema
 const userSchema = new mongoose.Schema({
-    name: {
-      type: String,
-      required: true,
-      minlength: 5,
-      maxlength: 50
-    },
-    phoneNumber: {
-      type: String,
-      required: true,
-      minlength: 5,
-      maxlength: 255,
-      unique: true
-    },
-    admin: Boolean
+  name: {
+    type: String,
+    required: true,
+    minlength: 5,
+    maxlength: 50
+  },
+  phoneNumber: {
+    type: String,
+    required: true,
+    minlength: 5,
+    maxlength: 255,
+    unique: true
+  },
+  status: {
+    type: String,
+    required: true,
+    minlength: 5,
+    maxlength: 255
+  },
+  admin: Boolean
 }, {
-  timestamps: true
-});
+    timestamps: true
+  });
 
 // Model
 type UserType = IUser & mongoose.Document;
 const UserModel = mongoose.model<UserType>('User', userSchema)
 
 // Exports
-export { 
-    userSchema, 
-    UserModel,  
-    UserType,
+export {
+  userSchema,
+  UserModel,
+  UserType,
 };

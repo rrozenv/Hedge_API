@@ -29,27 +29,27 @@ import IPosition from '../interfaces/position.interface';
 
 // MARK: - PortfoliosController
 class PortfoliosController implements IController {
-    
+
     // MARK: - Properties
     public router = express.Router({});
     private iex_service: IEXService;
     private log: debug.Debugger;
-   
+
     // MARK: - Constructor
     constructor() {
-      this.iex_service = new IEXService();
-      this.log = debug('controller:portfolios');
-      this.initializeRoutes();
+        this.iex_service = new IEXService();
+        this.log = debug('controller:portfolios');
+        this.initializeRoutes();
     }
-   
+
     private initializeRoutes() {
-      this.router.get(Path.dashboard, this.getDashboardPortfolios);
-    //   this.router.get(Path.portfolios, auth, this.getPortfolios);
-      this.router.get(`${Path.portfolios}/:id/positions`, this.getPortfolioPositions);
-      this.router.get(`${Path.portfolios}/:id/performance/:range`, this.getPortfolioPerformance);
-      // this.router.get(`${Path.portfolios}/:id`, [auth, validateObjectId], this.getPortfolio);
-      // this.router.post(Path.portfolios, [auth, bodyValidation], this.createPortfolio);
-      this.router.post(Path.portfolios, this.createPortfolio);
+        // GET
+        this.router.get(Path.dashboard, [auth], this.getDashboardPortfolios);
+        this.router.get(`${Path.portfolios}/:id/positions`, [auth, validateObjectId], this.getPortfolioPositions);
+        this.router.get(`${Path.portfolios}/:id/performance/:range`, [auth, validateObjectId], this.getPortfolioPerformance);
+
+        // POST
+        this.router.post(Path.portfolios, this.createPortfolio);
     }
 
     /// ** ---- GET ROUTES ---- **
@@ -57,17 +57,18 @@ class PortfoliosController implements IController {
     // MARK: - Get dashboard
     private getDashboardPortfolios = async (req: any, res: any) => {
         // Find portfolios
-        const portfolios = await PortfolioModel.find() 
-        
+        const portfolios = await PortfolioModel.find()
+
         // Create response 
         const modifiedPortfolios = await Promise.all(
-            portfolios.map(async (port) => { 
+            portfolios.map(async (port) => {
                 const performance = await createChartPerformanceResponse(port, req.query.range)
-                return { 
+                return {
                     id: port._id,
                     name: port.name,
                     description: port.description,
                     rebalanceDate: port.rebalanceDate,
+                    benchmarkType: port.benchmarkType,
                     performance: performance,
                     positions: port.positions
                 }
@@ -79,21 +80,58 @@ class PortfoliosController implements IController {
     }
 
     private getPortfolioPositions = async (req: any, res: any) => {
-        const positions = await PortfolioModel.findById(req.params.id)
+        // Find portfolio posiitons. 
+        const positions = await PortfolioModel
+            .findById(req.params.id)
             .populate('positions')
-    
-        // Send response 
+
+        // Send response.
         res.send(positions);
     }
 
     private getPortfolioPerformance = async (req: any, res: any) => {
+        // Find portfolio by id. 
         const portfolio = await PortfolioModel.findById(req.params.id)
         if (!portfolio) return res.status(400).send(`Portfolio not found for: ${req.params.id}`)
+
+        // Create chart perfromance.
         const performance = await createChartPerformanceResponse(portfolio, req.params.range)
-    
-        // Send response 
+
+        // Send response.
         res.send(performance);
     }
+
+    private createPortfolio = async (req: any, res: any) => {
+        const name: string = req.body.name;
+        const description: string = req.body.description;
+        const rebalanceDate: string = req.body.rebalanceDate;
+        const benchmarkType: string = req.body.benchmarkType;
+        const positions: any[] = req.body.positions;
+
+        const positionModels = await Promise.all(
+            positions.map(async pos => {
+                return await createPosition(pos);
+            })
+        );
+
+        const portfolio = new PortfolioModel({
+            name: name,
+            description: description,
+            rebalanceDate: rebalanceDate,
+            benchmarkType: benchmarkType,
+            positions: positionModels
+        })
+
+        await portfolio.save();
+
+        res.send(portfolio);
+    }
+
+}
+
+export default PortfoliosController;
+
+
 
         // MARK: - Get portfolio by id
     // private getPortfolio = async (req: any, res: any) => { 
@@ -113,7 +151,7 @@ class PortfoliosController implements IController {
     //         res.send(portfolio);
     //     }
     // };
-    
+
     // MARK: - Get Old Dashboard
     // private getPortfolios = async (req: any, res: any) => {
     //     // Find portfolios
@@ -122,7 +160,7 @@ class PortfoliosController implements IController {
     //     // If first portfolio return empty array 
     //     let firstPortfolio = portfolios.shift();
     //     if (!firstPortfolio) return res.send(portfolios)
-        
+
     //     // Try to fetch updated stocks for first portoflio only
     //     try { 
     //         const updatedStocks = await this.iex_service.fetchQuotesForStocks(firstPortfolio.stocks);
@@ -131,42 +169,10 @@ class PortfoliosController implements IController {
     //     } catch(error) { 
     //         this.log(error);
     //     }
-        
+
     //     // Return all portfolios with first having updated stock quotes
     //     res.send({ portfolios: [firstPortfolio].concat(portfolios) });
     // }
-
-
-    private createPortfolio = async (req: any, res: any) => { 
-        const name: string = req.body.name;
-        const description: string = req.body.description;
-        const rebalanceDate: string = req.body.rebalanceDate;
-        // const performance: IDailyPortfolioPerformance = req.body.performance;
-        const positions: any[] = req.body.positions;
-      
-        const positionModels = await Promise.all( 
-            positions.map(async pos => { 
-                return await createPosition(pos);
-            })
-        );
-        console.log(positionModels);
-        // new DailyPortfolioPerformanceModel({ 
-        //     portfolio: portfolio._id,
-        //     date: moment().subtract(2, 'months').endOf('month').toDate(),
-        //     performance: 20.0
-        // }),
-
-        const portfolio = new PortfolioModel({ 
-            name: name,
-            description: description,
-            rebalanceDate: rebalanceDate,
-            positions: positionModels
-        })
-
-        await portfolio.save();
-
-        res.send(portfolio);
-    }
 
     /// ** ---- POST ROUTES ---- **
     // MARK: - POST API's
@@ -181,7 +187,7 @@ class PortfoliosController implements IController {
     //         const newStocks = await Promise.all(
     //             stocks.map(async (stock) => await this.createStock(stock))
     //         );
-    
+
     //         // Create portfolio 
     //         const portfolio = new PortfolioModel({ 
     //             name: name,
@@ -189,7 +195,7 @@ class PortfoliosController implements IController {
     //             stocks: newStocks,
     //         });
     //         await portfolio.save();
-        
+
     //         // Return portfolio 
     //         res.send(portfolio);
     //     } catch (err) { 
@@ -202,22 +208,3 @@ class PortfoliosController implements IController {
     //         )
     //     }
     // }
-
-    /// ** ---- HELPER METHODS ---- **
-    // MARK: Create stock and save
-    private createStock = async (stock: IStock): Promise<StockType> => { 
-        const quotes = await this.iex_service.fetchQuotes([stock.symbol], ['quote']);
-
-        const stockModel = new StockModel({ 
-            symbol: stock.symbol,
-            imageUrl: stock.imageUrl,
-            sector: stock.sector,
-            quote: quotes[0]
-        });
-    
-        return stockModel;
-    }
-    
-}
-
-export default PortfoliosController;

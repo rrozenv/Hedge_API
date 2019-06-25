@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function () { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function () { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -55,136 +55,148 @@ var PortfoliosController = /** @class */ (function () {
         this.router = express_1.default.Router({});
         /// ** ---- GET ROUTES ---- **
         // MARK: - Get dashboard
-        this.getDashboard = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var portfolios, firstPortfolio, updatedStocks, error_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, portfolio_model_1.PortfolioModel.find()
+        this.getDashboard = function (req, res) {
+            return __awaiter(_this, void 0, void 0, function () {
+                var portfolios, firstPortfolio, updatedStocks, error_1;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, portfolio_model_1.PortfolioModel.find()
                             .populate({ path: 'stocks', model: 'Stock' })
-                        // If first portfolio return empty array 
-                    ];
-                    case 1:
-                        portfolios = _a.sent();
-                        firstPortfolio = portfolios.shift();
-                        if (!firstPortfolio)
-                            return [2 /*return*/, res.send(portfolios)
-                                // Try to fetch updated stocks for first portoflio only
-                            ];
-                        _a.label = 2;
-                    case 2:
-                        _a.trys.push([2, 5, , 6]);
-                        return [4 /*yield*/, this.iex_service.fetchQuotesForStocks(firstPortfolio.stocks)];
-                    case 3:
-                        updatedStocks = _a.sent();
-                        firstPortfolio.stocks = updatedStocks;
-                        return [4 /*yield*/, firstPortfolio.save()];
-                    case 4:
-                        _a.sent();
-                        return [3 /*break*/, 6];
-                    case 5:
-                        error_1 = _a.sent();
-                        this.log(error_1);
-                        return [3 /*break*/, 6];
-                    case 6:
-                        // Return all portfolios with first having updated stock quotes
-                        res.send({ portfolios: [firstPortfolio].concat(portfolios) });
-                        return [2 /*return*/];
-                }
+                            // If first portfolio return empty array 
+                        ];
+                        case 1:
+                            portfolios = _a.sent();
+                            firstPortfolio = portfolios.shift();
+                            if (!firstPortfolio)
+                                return [2 /*return*/, res.send(portfolios)
+                                    // Try to fetch updated stocks for first portoflio only
+                                ];
+                            _a.label = 2;
+                        case 2:
+                            _a.trys.push([2, 5, , 6]);
+                            return [4 /*yield*/, this.iex_service.fetchQuotesForStocks(firstPortfolio.stocks)];
+                        case 3:
+                            updatedStocks = _a.sent();
+                            firstPortfolio.stocks = updatedStocks;
+                            return [4 /*yield*/, firstPortfolio.save()];
+                        case 4:
+                            _a.sent();
+                            return [3 /*break*/, 6];
+                        case 5:
+                            error_1 = _a.sent();
+                            this.log(error_1);
+                            return [3 /*break*/, 6];
+                        case 6:
+                            // Return all portfolios with first having updated stock quotes
+                            res.send({ portfolios: [firstPortfolio].concat(portfolios) });
+                            return [2 /*return*/];
+                    }
+                });
             });
-        }); };
+        };
         // MARK: - Get portfolio by id
-        this.getPortfolio = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var portfolio, updatedStocks, error_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, portfolio_model_1.PortfolioModel.findById(req.params.id)
+        this.getPortfolio = function (req, res) {
+            return __awaiter(_this, void 0, void 0, function () {
+                var portfolio, updatedStocks, error_2;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, portfolio_model_1.PortfolioModel.findById(req.params.id)
                             .populate({ path: 'stocks', model: 'Stock' })];
-                    case 1:
-                        portfolio = _a.sent();
-                        if (!portfolio) return [3 /*break*/, 6];
-                        _a.label = 2;
-                    case 2:
-                        _a.trys.push([2, 5, , 6]);
-                        return [4 /*yield*/, this.iex_service.fetchQuotesForStocks(portfolio.stocks)];
-                    case 3:
-                        updatedStocks = _a.sent();
-                        portfolio.stocks = updatedStocks;
-                        return [4 /*yield*/, portfolio.save()];
-                    case 4:
-                        _a.sent();
-                        res.send(portfolio);
-                        return [3 /*break*/, 6];
-                    case 5:
-                        error_2 = _a.sent();
-                        this.log(error_2);
-                        res.send(portfolio);
-                        return [3 /*break*/, 6];
-                    case 6:
-                        // Return error if portfolio not found
-                        res.status(400).send("Portfolio not found for: " + req.params.id);
-                        return [2 /*return*/];
-                }
+                        case 1:
+                            portfolio = _a.sent();
+                            if (!portfolio) return [3 /*break*/, 6];
+                            _a.label = 2;
+                        case 2:
+                            _a.trys.push([2, 5, , 6]);
+                            return [4 /*yield*/, this.iex_service.fetchQuotesForStocks(portfolio.stocks)];
+                        case 3:
+                            updatedStocks = _a.sent();
+                            portfolio.stocks = updatedStocks;
+                            return [4 /*yield*/, portfolio.save()];
+                        case 4:
+                            _a.sent();
+                            res.send(portfolio);
+                            return [3 /*break*/, 6];
+                        case 5:
+                            error_2 = _a.sent();
+                            this.log(error_2);
+                            res.send(portfolio);
+                            return [3 /*break*/, 6];
+                        case 6:
+                            // Return error if portfolio not found
+                            res.status(400).send("Portfolio not found for: " + req.params.id);
+                            return [2 /*return*/];
+                    }
+                });
             });
-        }); };
+        };
         /// ** ---- POST ROUTES ---- **
         // MARK: - POST API's
-        this.createPortfolio = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var error, name, description, stocks, newStocks, portfolio;
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        error = this.validateCreate(req.body).error;
-                        if (error)
-                            return [2 /*return*/, res.status(400).send(error.details[0].message)];
-                        name = req.body.name;
-                        description = req.body.description;
-                        stocks = req.body.stocks;
-                        return [4 /*yield*/, Promise.all(stocks.map(function (stock) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0: return [4 /*yield*/, this.createStock(stock)];
-                                    case 1: return [2 /*return*/, _a.sent()];
-                                }
-                            }); }); }))];
-                    case 1:
-                        newStocks = _a.sent();
-                        portfolio = new portfolio_model_1.PortfolioModel({
-                            name: name,
-                            description: description,
-                            stocks: newStocks,
-                        });
-                        return [4 /*yield*/, portfolio.save()];
-                    case 2:
-                        _a.sent();
-                        // Return portfolio 
-                        res.send(portfolio);
-                        return [2 /*return*/];
-                }
+        this.createPortfolio = function (req, res) {
+            return __awaiter(_this, void 0, void 0, function () {
+                var error, name, description, stocks, newStocks, portfolio;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            error = this.validateCreate(req.body).error;
+                            if (error)
+                                return [2 /*return*/, res.status(400).send(error.details[0].message)];
+                            name = req.body.name;
+                            description = req.body.description;
+                            stocks = req.body.stocks;
+                            return [4 /*yield*/, Promise.all(stocks.map(function (stock) {
+                                return __awaiter(_this, void 0, void 0, function () {
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4 /*yield*/, this.createStock(stock)];
+                                            case 1: return [2 /*return*/, _a.sent()];
+                                        }
+                                    });
+                                });
+                            }))];
+                        case 1:
+                            newStocks = _a.sent();
+                            portfolio = new portfolio_model_1.PortfolioModel({
+                                name: name,
+                                description: description,
+                                stocks: newStocks,
+                            });
+                            return [4 /*yield*/, portfolio.save()];
+                        case 2:
+                            _a.sent();
+                            // Return portfolio 
+                            res.send(portfolio);
+                            return [2 /*return*/];
+                    }
+                });
             });
-        }); };
+        };
         /// ** ---- HELPER METHODS ---- **
         // MARK: Create stock and save
-        this.createStock = function (stock) { return __awaiter(_this, void 0, void 0, function () {
-            var sector, quotes, stockModel;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        sector = stock.sector;
-                        return [4 /*yield*/, this.iex_service.fetchQuotes([stock.quote.symbol], ['quote'])];
-                    case 1:
-                        quotes = _a.sent();
-                        stockModel = new stock_model_1.StockModel({
-                            imageUrl: '',
-                            sector: sector,
-                            quote: quotes[0]
-                        });
-                        return [4 /*yield*/, stockModel.save()];
-                    case 2:
-                        _a.sent();
-                        return [2 /*return*/, stockModel];
-                }
+        this.createStock = function (stock) {
+            return __awaiter(_this, void 0, void 0, function () {
+                var sector, quotes, stockModel;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            sector = stock.sector;
+                            return [4 /*yield*/, this.iex_service.fetchQuotes([stock.quote.symbol], ['quote'])];
+                        case 1:
+                            quotes = _a.sent();
+                            stockModel = new stock_model_1.StockModel({
+                                imageUrl: '',
+                                sector: sector,
+                                quote: quotes[0]
+                            });
+                            return [4 /*yield*/, stockModel.save()];
+                        case 2:
+                            _a.sent();
+                            return [2 /*return*/, stockModel];
+                    }
+                });
             });
-        }); };
+        };
         /// ** ---- VALIDATION ---- **
         // MARK: - User body validation 
         this.validateCreate = function (portfolio) {

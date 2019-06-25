@@ -1,7 +1,6 @@
 
-export default interface IUser { 
-    name: string; 
-    phoneNumber: string; 
-    admin: boolean; 
+export default interface IUser {
+    name: string;
+    phoneNumber: string;
+    admin: boolean;
 };
-  

@@ -1,9 +1,9 @@
 import { HedgeFundPositionModel, HedgeFundPositionType } from '../models/hedgeFundPosition.model';
 import hedgeFundTemplates from './hedgeFund.templates';
 
-const hedgeFundPositionTemplates: HedgeFundPositionType[] = [ 
-    new HedgeFundPositionModel({ 
-        hedgeFund: { 
+const hedgeFundPositionTemplates: HedgeFundPositionType[] = [
+    new HedgeFundPositionModel({
+        hedgeFund: {
             _id: hedgeFundTemplates[0]._id,
             name: hedgeFundTemplates[0].name,
             manager: hedgeFundTemplates[0].manager
@@ -12,8 +12,8 @@ const hedgeFundPositionTemplates: HedgeFundPositionType[] = [
         marketValue: 20000,
         purchaseDate: Date.now
     }),
-    new HedgeFundPositionModel({ 
-        hedgeFund: { 
+    new HedgeFundPositionModel({
+        hedgeFund: {
             _id: hedgeFundTemplates[0]._id,
             name: hedgeFundTemplates[0].name,
             manager: hedgeFundTemplates[0].manager
@@ -22,8 +22,8 @@ const hedgeFundPositionTemplates: HedgeFundPositionType[] = [
         marketValue: 450606,
         purchaseDate: Date.now
     }),
-    new HedgeFundPositionModel({ 
-        hedgeFund: { 
+    new HedgeFundPositionModel({
+        hedgeFund: {
             _id: hedgeFundTemplates[1]._id,
             name: hedgeFundTemplates[1].name,
             manager: hedgeFundTemplates[1].manager

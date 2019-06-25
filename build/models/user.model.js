@@ -21,8 +21,8 @@ var userSchema = new mongoose_1.default.Schema({
     },
     admin: Boolean
 }, {
-    timestamps: true
-});
+        timestamps: true
+    });
 exports.userSchema = userSchema;
 var UserModel = mongoose_1.default.model('User', userSchema);
 exports.UserModel = UserModel;

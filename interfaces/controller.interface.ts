@@ -1,3 +1,3 @@
-export default interface IController { 
+export default interface IController {
     router: any
 }

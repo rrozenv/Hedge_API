@@ -3,25 +3,25 @@ import IStock from '../interfaces/stock.interface';
 import { quoteSchema } from './quote.model';
 
 const stockSchema = new mongoose.Schema({
-  symbol: { 
+  symbol: {
     type: String,
     required: true
   },
-  companyName: { 
-      type: String,
-      required: false
-  },
-  imageUrl: { 
+  companyName: {
     type: String,
     required: false
   },
-  sector: { 
+  imageUrl: {
+    type: String,
+    required: false
+  },
+  sector: {
     type: String,
     required: true,
     enum: ['technology', 'energy', 'healthcare', 'biotech'],
     maxlength: 10000
   },
-  quote: { 
+  quote: {
     type: quoteSchema,
     required: false
   }

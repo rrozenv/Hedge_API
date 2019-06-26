@@ -1,6 +1,5 @@
 {
     "name": "My app - Tests",
-    "db-host": "mongodb://localhost/hedge_tests",
     "iex-base-url": "https://cloud.iexapis.com",
     "twilio-base-url": "https://api.authy.com/protected/json"
 }

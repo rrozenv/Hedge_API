@@ -1,6 +1,6 @@
 {
     "name": "My app - Staging",
-    "db-host": "mongodb://localhost/hedge",
     "iex-base-url": "https://cloud.iexapis.com/stable",
-    "twilio-base-url": "https://api.authy.com/protected/json"
+    "twilio-base-url": "https://api.authy.com/protected/json",
+    "dbHost": "mongodb+srv://admin:armorlabsrosey12%21@hedge-xkalh.mongodb.net/test?retryWrites=true&w=majority"
 }

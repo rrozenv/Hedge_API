@@ -4,8 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "build-ts": "tsc",
-    "postinstall": "npm run build-ts",
+    "tsc": "tsc",
+    "postinstall": "npm run tsc",
     "start": "npm run serve",
     "serve": "node build/app.js",
     "test": "jest --watchAll --verbose",

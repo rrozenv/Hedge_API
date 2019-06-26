@@ -1,172 +1,148 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var express_1 = __importDefault(require("express"));
-var Joi_1 = __importDefault(require("Joi"));
-var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var config_1 = __importDefault(require("config"));
-var user_model_1 = require("../models/user.model");
-var TwilioService_1 = __importDefault(require("../services/TwilioService"));
-var UsersController = /** @class */ (function () {
+// Dependencies
+const express_1 = __importDefault(require("express"));
+const Joi_1 = __importDefault(require("Joi"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const config_1 = __importDefault(require("config"));
+const auth_1 = __importDefault(require("../middleware/auth"));
+// Models
+const user_model_1 = require("../models/user.model");
+// Services
+const TwilioService_1 = __importDefault(require("../services/TwilioService"));
+const Error_1 = __importDefault(require("../util/Error"));
+// MARK: - UsersController
+class UsersController {
     // MARK: - Constructor
-    function UsersController() {
-        var _this = this;
+    constructor() {
         // MARK: - Properties
         this.path = '/users';
         this.router = express_1.default.Router({});
+        this.featureFlags = {
+            watchlistEnabled: false
+        };
+        /// ** ---- GET ROUTES ---- **
+        // MARK: - Get current user
+        this.getCurrentUser = async (req, res) => {
+            // Find user from token
+            const user = await user_model_1.UserModel.findById(req.user);
+            if (!user)
+                return res.status(400).send(new Error_1.default('Bad Request', 'User does not exist.'));
+            // Send response
+            res.send(Object.assign({}, user.toJSON(), { featureFlags: this.featureFlags }));
+        };
         /// ** ---- POST ROUTES ---- **
-        // MARK: - Create User
-        this.createUser = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var error, _a, name, phoneNumber, admin, user, tokenData;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        error = this.validateCreate(req.body).error;
-                        if (error)
-                            return [2 /*return*/, res.status(400).send(error.details[0].message)];
-                        _a = req.body, name = _a.name, phoneNumber = _a.phoneNumber, admin = _a.admin;
-                        return [4 /*yield*/, user_model_1.UserModel.findOne({ phoneNumber: phoneNumber })];
-                    case 1:
-                        user = _b.sent();
-                        if (!!user) return [3 /*break*/, 3];
-                        user = new user_model_1.UserModel({
-                            name: name,
-                            phoneNumber: phoneNumber,
-                            admin: admin
-                        });
-                        return [4 /*yield*/, user.save()];
-                    case 2:
-                        _b.sent();
-                        _b.label = 3;
-                    case 3:
-                        tokenData = this.createAuthToken(user);
-                        res.header('Set-Cookie', this.createCookie(tokenData));
-                        res.send(user);
-                        return [2 /*return*/];
-                }
+        // MARK: - Create new user
+        this.createUser = async (req, res) => {
+            // Errors
+            const { error } = this.validateCreate(req.body);
+            if (error)
+                return res.status(400).send(error.details[0].message);
+            // Find user if exists
+            const { name, phone, admin } = req.body;
+            let user = await user_model_1.UserModel.findOne({ phoneNumber: phone });
+            // Create new user if doesn't exist 
+            if (!user) {
+                user = new user_model_1.UserModel({
+                    name: name,
+                    phoneNumber: phone,
+                    status: 'trial',
+                    admin: admin
+                });
+                await user.save();
+            }
+            // Return user with token in headers
+            const tokenData = this.createAuthToken(user);
+            res.set(this.createHeadersWith(tokenData));
+            res.send({
+                user: Object.assign({}, user.toJSON(), { featureFlags: this.featureFlags }),
+                token: tokenData.token,
+                tokenExp: tokenData.expiresIn
             });
-        }); };
+        };
         // MARK: - Login User
-        this.loginUser = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var error, phoneNumber, user, tokenData;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        error = this.validateLogin(req.body).error;
-                        if (error)
-                            return [2 /*return*/, res.status(400).send(error.details[0].message)];
-                        phoneNumber = req.body.phoneNumber;
-                        return [4 /*yield*/, user_model_1.UserModel.findOne({ phoneNumber: phoneNumber })];
-                    case 1:
-                        user = _a.sent();
-                        if (!user)
-                            return [2 /*return*/, res.status(400).send({ message: 'User does not exist.' })];
-                        tokenData = this.createAuthToken(user);
-                        res.header('x-auth-token', tokenData.token);
-                        res.header('token-expiration', tokenData.expiresIn);
-                        //res.header('Set-Cookie', this.createCookie(tokenData));
-                        res.send(user);
-                        return [2 /*return*/];
-                }
+        this.loginUser = async (req, res) => {
+            // Errors
+            const { error } = this.validateLogin(req.body);
+            if (error)
+                return res.status(400).send(error.details[0].message);
+            // Find user
+            const { phone } = req.body;
+            let user = await user_model_1.UserModel.findOne({ phoneNumber: phone });
+            if (!user)
+                return res.status(400).send({ message: 'User does not exist.' });
+            // Return user with token in headers
+            const tokenData = this.createAuthToken(user);
+            res.set(this.createHeadersWith(tokenData));
+            res.send({
+                user: Object.assign({}, user.toJSON(), { featureFlags: {
+                        watchlistEnabled: false
+                    } }),
+                token: tokenData.token,
+                tokenExp: tokenData.expiresIn
             });
-        }); };
+        };
         // MARK: - Send phone verification code 
-        this.sendVerificationCode = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var _a, via, country_code, phone_number, response;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _a = req.body, via = _a.via, country_code = _a.country_code, phone_number = _a.phone_number;
-                        return [4 /*yield*/, this.twilio_service.sendVerificationCodeTo(phone_number, country_code, via)];
-                    case 1:
-                        response = _b.sent();
-                        res.send(response);
-                        return [2 /*return*/];
-                }
-            });
-        }); };
+        this.sendVerificationCode = async (req, res) => {
+            const { via, country_code, phone_number } = req.body;
+            try {
+                const response = await this.twilio_service.sendVerificationCodeTo(phone_number, country_code, via);
+                res.send(response);
+            }
+            catch (err) {
+                res.status(400).send(new Error_1.default('Bad Request', `Error sending code: ${err}`));
+            }
+        };
         // MARK: - Validate verification code 
-        this.validateVerificationCode = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var _a, via, country_code, phone_number, response;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _a = req.body, via = _a.via, country_code = _a.country_code, phone_number = _a.phone_number;
-                        return [4 /*yield*/, this.twilio_service.validateVerificationCode(phone_number, country_code, via)];
-                    case 1:
-                        response = _b.sent();
-                        res.send(response);
-                        return [2 /*return*/];
-                }
-            });
-        }); };
+        this.validateVerificationCode = async (req, res) => {
+            const { code, country_code, phone_number } = req.body;
+            try {
+                const response = await this.twilio_service.validateVerificationCode(phone_number, country_code, code);
+                res.send(response);
+            }
+            catch (err) {
+                res.status(400).send(new Error_1.default('Bad Request', `Error verifying code: ${err}`));
+            }
+        };
         /// ** ---- HELPER METHODS ---- **
         // MARK: - Auth token creation 
-        this.createAuthToken = function (user) {
-            var expiresIn = 60 * 60; // an hour
-            var secret = config_1.default.get('jwtKey');
+        this.createAuthToken = (user) => {
+            const expiresIn = 1209600; // 2 weeks
+            const secret = config_1.default.get('jwtKey');
             return {
-                expiresIn: expiresIn,
-                token: jsonwebtoken_1.default.sign({ _id: user._id, admin: user.admin }, secret, { expiresIn: expiresIn }),
+                expiresIn,
+                token: jsonwebtoken_1.default.sign({
+                    _id: user._id,
+                    admin: user.admin,
+                    phoneNumber: user.phoneNumber
+                }, secret
+                // { expiresIn } // MARK: - removing token expiration for now. 
+                ),
             };
         };
         /// ** ---- VALIDATION ---- **
         // MARK: - User body validation 
-        this.validateCreate = function (user) {
-            var schema = {
+        this.validateCreate = (user) => {
+            const schema = {
                 name: Joi_1.default.string().min(1).max(100).required(),
-                phoneNumber: Joi_1.default.string().required(),
+                phone: Joi_1.default.string().required(),
                 admin: Joi_1.default.boolean()
             };
             return Joi_1.default.validate(user, schema);
         };
         // MARK: - User body validation 
-        this.validateLogin = function (params) {
-            var schema = {
-                phoneNumber: Joi_1.default.string().required(),
+        this.validateLogin = (params) => {
+            const schema = {
+                phone: Joi_1.default.string().required(),
             };
             return Joi_1.default.validate(params, schema);
         };
         // MARK: - Token body validation 
-        this.validateToken = function (token) {
-            var schema = {
+        this.validateToken = (token) => {
+            const schema = {
                 token: Joi_1.default.string().required()
             };
             return Joi_1.default.validate(token, schema);
@@ -174,15 +150,21 @@ var UsersController = /** @class */ (function () {
         this.twilio_service = new TwilioService_1.default();
         this.initializeRoutes();
     }
-    UsersController.prototype.initializeRoutes = function () {
+    initializeRoutes() {
+        // GET
+        this.router.get(`${this.path}/me`, [auth_1.default], this.getCurrentUser);
+        // POST
         this.router.post(this.path, this.createUser);
-        this.router.post(this.path + "/login", this.loginUser);
-        this.router.post(this.path + "/sendPhoneVerificationCode", this.sendVerificationCode);
-        this.router.post(this.path + "/validatePhoneVerificationCode", this.validateVerificationCode);
-    };
-    UsersController.prototype.createCookie = function (tokenData) {
-        return "Authorization=" + tokenData.token + "; HttpOnly; Max-Age=" + tokenData.expiresIn;
-    };
-    return UsersController;
-}());
+        this.router.post(`${this.path}/login`, this.loginUser);
+        this.router.post(`${this.path}/sendCode`, this.sendVerificationCode);
+        this.router.post(`${this.path}/validateCode`, this.validateVerificationCode);
+    }
+    // MARK: - Auth headers creations
+    createHeadersWith(tokenData) {
+        return {
+            'x-auth-token': tokenData.token,
+            'token-expiration': tokenData.expiresIn
+        };
+    }
+}
 exports.default = UsersController;

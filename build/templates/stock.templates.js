@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var stock_model_1 = require("../models/stock.model");
-var stockTemplates = [
+const stock_model_1 = require("../models/stock.model");
+const stockTemplates = [
     new stock_model_1.StockModel({
+        symbol: "AAPL",
+        companyName: "Apple Inc",
         imageUrl: '',
         sector: 'technology',
         quote: {
-            symbol: "AAPL",
-            companyName: "Apple Inc",
             latestPrice: 100.0,
             changePercent: 2.0
         }
@@ -15,19 +15,19 @@ var stockTemplates = [
     new stock_model_1.StockModel({
         imageUrl: '',
         sector: 'technology',
+        symbol: "FB",
+        companyName: "Facebook",
         quote: {
-            symbol: "FB",
-            companyName: "Facebook",
             latestPrice: 100.0,
             changePercent: 2.0
         }
     }),
     new stock_model_1.StockModel({
+        symbol: "TSLA",
+        companyName: "Tesla Inc",
         imageUrl: '',
         sector: 'technology',
         quote: {
-            symbol: "TSLA",
-            companyName: "Tesla Inc",
             latestPrice: 100.0,
             changePercent: 2.0
         }

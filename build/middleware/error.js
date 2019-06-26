@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = (function (err, req, res, next) {
-    console.log(err);
-    res.status(500).send('Something failed.');
-});
+exports.default = (err, req, res, next) => {
+    res.status(500).send('Internal Server Error');
+};

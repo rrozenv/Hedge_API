@@ -1,5 +1,6 @@
 {
     "jwtKey": "H_JWT_KEY",
     "twilioKey": "H_TWILIO_KEY",
-    "iexKey": "H_IEX_KEY"
+    "iexKey": "H_IEX_KEY",
+    "db-host": "H_DB_HOST"
 }

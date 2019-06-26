@@ -172,11 +172,11 @@ const createBenchmarkPerformanceResponse = async (type: string, endDate: Date, s
             ...startDate && { $gte: startDate }
         }
     };
-    console.log(`fetching benchmark: ${type}`);
+
     const benchmarkModels = await BenchmarkPerformanceModel
         .find(query)
         .sort('date');
-    console.log(`found models: ${benchmarkModels}`);
+
     const percentageReturn = calculatePercentageReturn(benchmarkModels);
     const chartPoints = createChartPoints(benchmarkModels);
 

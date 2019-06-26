@@ -34,11 +34,9 @@ export default async (req: any, res: any, next: any) => {
     const method = req.method.toLowerCase();
     const schema = _.get(schemas, route);
 
-    console.log(`PATH: ${req.route.path}`);
-
     // If there is no schema for route or is not a supported method just return 
     if (!schema || !_.includes(supportedMethods, method)) return next();
-    console.log(req.body);
+
     // Validate schema
     try {
         const data = await validate(req.body, schema, validationOptions);
@@ -46,7 +44,6 @@ export default async (req: any, res: any, next: any) => {
         next();
     }
     catch (err) {
-        console.log(err);
         const message = _.reduce(err.details, (acc, detail) => `${detail.message}, ${acc}`, '')
         res.status(400).json(new APIError('Bad Request', message));
     }

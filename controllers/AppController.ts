@@ -5,6 +5,7 @@ import config from 'config';
 import debug from 'debug';
 // Middleware
 import error from '../middleware/error'
+import prodSetup from '../util/prod'
 // Interfaces 
 import Controller from '../interfaces/controller.interface'
 // Models
@@ -95,6 +96,7 @@ class AppController {
         this.log('Running Staging Env...')
         break;
       case 'production':
+        prodSetup(this.app);
         this.log('Running Production Env...')
         break;
       case 'test':

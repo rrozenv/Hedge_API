@@ -89,7 +89,6 @@ class IEXService {
                 return stock
             });
         } catch (err) {
-            console.log(err);
             throw `Failed to fetch data for ${stocks}`
         }
     };

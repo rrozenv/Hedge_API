@@ -41,7 +41,6 @@ class StocksController implements IController {
       const quote = await this.iex_service.fetchQuote(req.params.ticker)
       res.send(quote);
     } catch (error) {
-      console.log(error);
       res.status(400).send(
         new APIError(
           'Bad Request',

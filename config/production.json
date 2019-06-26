@@ -1,6 +1,6 @@
 {
     "name": "My app - Prod",
-    "db-host": "mongodb://localhost/hedge",
+    "db-host": "mongodb://localhost/hedge_prod",
     "iex-base-url": "https://cloud.iexapis.com",
     "twilio-base-url": "https://api.authy.com/protected/json"
 }

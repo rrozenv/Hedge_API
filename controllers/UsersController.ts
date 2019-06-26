@@ -141,7 +141,6 @@ class UsersController implements IController {
       const response = await this.twilio_service.validateVerificationCode(phone_number, country_code, code);
       res.send(response);
     } catch (err) {
-      console.log(err);
       res.status(400).send(
         new APIError('Bad Request', `Error verifying code: ${err}`)
       );
@@ -151,12 +150,20 @@ class UsersController implements IController {
   /// ** ---- HELPER METHODS ---- **
   // MARK: - Auth token creation 
   createAuthToken = (user: UserType): IToken => {
-    const expiresIn = 60 * 60; // an hour
+    const expiresIn = 1209600; // 2 weeks
     const secret: string = config.get('jwtKey');
 
     return {
       expiresIn,
-      token: jwt.sign({ _id: user._id, admin: user.admin, phoneNumber: user.phoneNumber }, secret, { expiresIn }),
+      token: jwt.sign(
+        {
+          _id: user._id,
+          admin: user.admin,
+          phoneNumber: user.phoneNumber
+        },
+        secret
+        // { expiresIn } // MARK: - removing token expiration for now. 
+      ),
     };
   }
 

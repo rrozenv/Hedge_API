@@ -1,6 +1,6 @@
 // Dependencies
 import express from 'express';
-import Joi from 'Joi';
+import Joi from 'joi';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import auth from '../middleware/auth';

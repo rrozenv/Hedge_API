@@ -4,8 +4,12 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "build-ts": "tsc",
+    "postinstall": "npm run build-ts",
+    "start": "npm run serve",
+    "serve": "node build/app.js",
     "test": "jest --watchAll --verbose",
-    "start": "nodemon --watch './**/*.ts' --exec 'ts-node' ./app.ts"
+    "staging": "nodemon --watch './**/*.ts' --exec 'ts-node' ./app.ts"
   },
   "author": "",
   "license": "ISC",

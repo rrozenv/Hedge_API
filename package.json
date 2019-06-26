@@ -40,7 +40,8 @@
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "mongoose": "^5.6.1",
-    "superagent": "^4.1.0"
+    "superagent": "^4.1.0",
+    "typescript": "^3.5.2"
   },
   "devDependencies": {
     "@types/debug": "^4.1.4",

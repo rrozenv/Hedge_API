@@ -1,6 +1,6 @@
 // Dependecies
 import express from 'express';
-import Joi from 'Joi';
+import Joi from 'joi';
 import debug from 'debug';
 // Middleware
 import auth from '../middleware/auth';

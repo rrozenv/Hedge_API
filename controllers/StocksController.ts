@@ -30,9 +30,9 @@ class StocksController implements IController {
 
   // MARK: - Create routes
   private initializeRoutes() {
-    this.router.get(`${Path.stocks}/:ticker`, this.getStockQuote);
-    this.router.get(`${Path.stocks}/:ticker/performance/:range`, this.getStockChart);
-    this.router.get(`${Path.stocks}/:id`, this.getPrimaryStockData);
+    this.router.get(`${Path.stocks}/:ticker`, [auth], this.getStockQuote);
+    this.router.get(`${Path.stocks}/:ticker/performance/:range`, [auth], this.getStockChart);
+    this.router.get(`${Path.stocks}/:id`, [auth, validateObjectId], this.getPrimaryStockData);
   }
 
   /// ** ---- GET ROUTES ---- **

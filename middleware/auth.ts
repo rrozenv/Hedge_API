@@ -3,6 +3,9 @@ import config from 'config';
 import APIError from '../util/Error';
 
 export default (req: any, res: any, next: any) => {
+  const skipAuth: boolean = config.get('skipAuth');
+  if (skipAuth) return next();
+
   const token = req.header('x-auth-token');
   if (!token) return res.status(404).send(
     new APIError('Token Expired', 'Please login again.')

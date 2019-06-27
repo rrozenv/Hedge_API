@@ -36,7 +36,6 @@ class AppController {
   private log: debug.Debugger;
   private env: string;
   private mongoose: any;
-  private db: any;
 
   // MARK: - Constructer
   constructor(mongoose: any, controllers: Controller[]) {
@@ -44,15 +43,11 @@ class AppController {
     this.app = express();
     this.log = debug('controller:app');
     this.env = this.app.get('env');
+    this.connectToTheDatabase();
     this.initializeExpressMiddleware();
     this.initializeControllers(controllers);
     this.initializeErrorMiddleware();
-
-    console.log(process.env.H_DB_HOST);
-    console.log(process.env.H_TWILIO_KEY);
-    this.db = config.get('dbHost');
-    this.connectToTheDatabase();
-
+    prodSetup(this.app);
     this.logEnvironment();
     this.listen();
   }
@@ -82,13 +77,14 @@ class AppController {
 
   // MARK: - Connect to data base
   private connectToTheDatabase() {
-    this.mongoose.connect(this.db, { useNewUrlParser: true, useFindAndModify: false })
+    const db = config.get('dbHost');
+    this.mongoose.connect(db, { useNewUrlParser: true, useFindAndModify: false })
       .then(async () => {
-        this.log(`Connected to ${this.db}...`);
+        this.log(`Connected to ${db}...`);
         // await this.clearDatabase();
         // await this.seedDatabase();
       })
-      .catch((err: any) => this.log(`Could not connect to ${this.db}...: ${err}`));
+      .catch((err: any) => this.log(`Could not connect to ${db}...: ${err}`));
   }
 
   // MARK: - Logs current environment
@@ -101,7 +97,6 @@ class AppController {
         this.log('Running Staging Env...')
         break;
       case 'production':
-        prodSetup(this.app);
         this.log('Running Production Env...')
         break;
       case 'test':

@@ -1,5 +1,10 @@
 {
-    "name": "My app - Tests",
+    "name": "Hedge_Test",
     "iex-base-url": "https://cloud.iexapis.com",
-    "twilio-base-url": "https://api.authy.com/protected/json"
+    "twilio-base-url": "https://api.authy.com/protected/json",
+    "dbHost": "mongodb://localhost/hedge_test",
+    "iexKey": "iex12345",
+    "jwtKey": "jwt12345",
+    "twilioKey": "twil12345",
+    "skipAuth": false
 }

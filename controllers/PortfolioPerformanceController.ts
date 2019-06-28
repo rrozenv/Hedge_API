@@ -48,7 +48,7 @@ class PortfolioPerformanceController implements IController {
 
         // POST
         this.router.post(`${Path.portfolios}/:id/chart`, [auth, validateObjectId], this.createPerformance);
-        this.router.post(`${Path.benchmarks}/:type/chart`, [auth, validateObjectId], this.createBenchmarkPerformance);
+        this.router.post(`${Path.benchmarks}/:type/chart`, [auth], this.createBenchmarkPerformance);
     }
 
     /// ** ---- GET ROUTES ---- **

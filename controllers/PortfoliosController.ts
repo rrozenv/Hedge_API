@@ -3,6 +3,7 @@ import express from 'express';
 import Joi from 'joi';
 import debug from 'debug';
 import moment from 'moment';
+import _ from 'lodash';
 // Middleware
 import auth from '../middleware/auth';
 import validateObjectId from '../middleware/validateObjectId';
@@ -50,6 +51,7 @@ class PortfoliosController implements IController {
 
         // POST
         this.router.post(Path.portfolios, this.createPortfolio);
+        this.router.put(`${Path.portfolios}/:id`, this.updatePortfolio);
     }
 
     /// ** ---- GET ROUTES ---- **
@@ -92,7 +94,9 @@ class PortfoliosController implements IController {
     private getPortfolioPerformance = async (req: any, res: any) => {
         // Find portfolio by id. 
         const portfolio = await PortfolioModel.findById(req.params.id)
-        if (!portfolio) return res.status(400).send(`Portfolio not found for: ${req.params.id}`)
+        if (!portfolio) return res.status(400).send(
+            new APIError('Bad Request', `Portfolio not found for: ${req.params.id}`)
+        )
 
         // Create chart perfromance.
         const performance = await createChartPerformanceResponse(portfolio, req.params.range)
@@ -101,6 +105,9 @@ class PortfoliosController implements IController {
         res.send(performance);
     }
 
+    /// ** ---- POST ROUTES ---- **
+
+    // MARK: - Create portfolio
     private createPortfolio = async (req: any, res: any) => {
         const name: string = req.body.name;
         const description: string = req.body.description;
@@ -124,6 +131,36 @@ class PortfoliosController implements IController {
 
         await portfolio.save();
 
+        res.send(portfolio);
+    }
+
+    // MARK: - Update portfolio 
+    private updatePortfolio = async (req: any, res: any) => {
+        const positions: any[] = req.body.positions ? req.body.positions : [];
+        const positionModels = await Promise.all(
+            positions.map(async pos => {
+                return await createPosition(pos);
+            })
+        );
+
+        const updateFields = {
+            name: req.body.name,
+            description: req.body.description,
+            rebalanceDate: req.body.rebalanceDate,
+            benchmarkType: req.body.benchmarkType,
+            positions: (positionModels && positionModels.length) ? positionModels : undefined
+        }
+
+        const validUpdateFields = _.pickBy(updateFields, _.identity);
+        const portfolio = await PortfolioModel.findByIdAndUpdate(
+            req.params.id,
+            validUpdateFields,
+            { new: true }
+        );
+
+        if (!portfolio) return res.status(400).send(
+            new APIError('Bad Request', `Portfolio not found for: ${req.params.id}`)
+        );
         res.send(portfolio);
     }
 

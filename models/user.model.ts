@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import IUser from '../interfaces/user.interface';
+import { subscriptionSchema } from '../models/subscription.model';
 import IToken from '../interfaces/token.interface';
 
 // Schema
@@ -22,6 +23,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 5,
     maxlength: 255
+  },
+  subscription: {
+    type: subscriptionSchema,
+    required: true
   },
   admin: Boolean
 }, {

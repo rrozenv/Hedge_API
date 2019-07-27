@@ -6,10 +6,12 @@ import config from 'config';
 import auth from '../middleware/auth';
 // Interfaces
 import IToken from '../interfaces/token.interface'
+import { ISubscription } from '../interfaces/subscription.interface'
 import IUser from '../interfaces/user.interface'
 import IController from '../interfaces/controller.interface';
 // Models
 import { UserModel, UserType } from '../models/user.model'
+import { SubscriptionModel, SubscriptionType } from '../models/subscription.model';
 // Services
 import TwilioService from '../services/TwilioService';
 import APIError from '../util/Error';
@@ -23,7 +25,8 @@ class UsersController implements IController {
   public router = express.Router({});
   private twilio_service: TwilioService;
   private featureFlags = {
-    watchlistEnabled: false
+    watchlistEnabled: false,
+    portfolioMetricsEnabled: false
   }
 
   // MARK: - Constructor
@@ -76,6 +79,7 @@ class UsersController implements IController {
         name: name,
         phoneNumber: phone,
         status: 'trial',
+        subscription: this.createSubscription(),
         admin: admin
       });
       await user.save();
@@ -165,6 +169,23 @@ class UsersController implements IController {
         // { expiresIn } // MARK: - removing token expiration for now. 
       ),
     };
+  }
+
+  createSubscription = (): SubscriptionType => {
+    return new SubscriptionModel({
+      entitlement: {
+        key: "key",
+        offerings: [
+          {
+            key: "key",
+            productId: "prodId",
+            status: "monthly",
+            price: 10.0
+          }
+        ]
+      },
+      trialExpiration: new Date()
+    })
   }
 
   // MARK: - Auth headers creations

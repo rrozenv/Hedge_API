@@ -122,7 +122,8 @@ class PortfolioPerformanceController implements IController {
 const createChartPerformanceResponse = async (portfolio: PortfolioType, range: string) => {
     const startDate = findStartDate(range);
     const endDate = moment().toDate();
-
+    console.log(`Start date: ${startDate}`);
+    console.log(`End date: ${endDate}`);
     const query = {
         portfolio: portfolio,
         date: {

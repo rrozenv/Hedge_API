@@ -28,10 +28,6 @@ const userSchema = new mongoose.Schema({
     type: subscriptionSchema,
     required: true
   },
-  watchlists: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Watchlist'
-  }],
   admin: Boolean
 }, {
     timestamps: true

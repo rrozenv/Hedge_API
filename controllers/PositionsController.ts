@@ -35,9 +35,9 @@ class PositionsController implements IController {
 
   // MARK: - Create Routes
   private initializeRoutes() {
-    this.router.get(`${Path.userPositions}/:id`, this.getPosition);
-    this.router.post(Path.createUserPositions, [auth, bodyValidation], this.createPosition);
+    this.router.get(`${Path.userPositions}/:id`, [auth, bodyValidation], this.getPosition);
     this.router.put(`${Path.updateUserPosition}/:id`, [auth, bodyValidation], this.updatePosition);
+    this.router.post(Path.createUserPositions, [auth, bodyValidation], this.createPosition);
   }
 
   // MARK: - Get portfolio by id
@@ -51,9 +51,13 @@ class PositionsController implements IController {
   // MARK: - Create watchlist
   private createPosition = async (req: any, res: any) => {
     // Find watchlists for given id's
-    const watchlistIds: mongoose.Schema.Types.ObjectId[] = req.body.watchlistIds
+    const watchlistIds: mongoose.Schema.Types.ObjectId[] = req.body.watchlistIds;
     const watchlists = await WatchlistModel
-      .find({ _id: { $in: watchlistIds } })
+      .find({ _id: { $in: watchlistIds } });
+
+    console.log(`wathlists: ${watchlists}`);
+
+    console.log(req.body.stock);
 
     // Create a new position in every watchlist
     const newPositions = await Promise.all(
@@ -65,11 +69,14 @@ class PositionsController implements IController {
           watchlistId: w._id
         });
         await position.save();
-        w.positions.push(position._id)
+        w.positions.push(position._id);
+        w.tickers.push(position.stock.symbol);
         await w.save();
         return position
       })
     );
+
+    console.log(`pos: ${newPositions}`);
 
     // Return positions 
     res.send(newPositions);
@@ -78,6 +85,7 @@ class PositionsController implements IController {
   /// ** ---- PUT ROUTES ---- **
   // MARK: - Update position
   private updatePosition = async (req: any, res: any) => {
+    console.log(`updating: ${req.body}`);
     const position = await UserPositionModel.findByIdAndUpdate(req.params.id,
       {
         buyPricePerShare: req.body.buyPricePerShare,

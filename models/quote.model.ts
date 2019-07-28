@@ -2,6 +2,10 @@ import mongoose from 'mongoose';
 import IQuote from '../interfaces/quote.interface';
 
 const quoteSchema = new mongoose.Schema({
+    symbol: {
+        type: String,
+        required: false
+    },
     latestPrice: {
         type: Number,
         required: true,

@@ -2,20 +2,15 @@ import Joi from 'joi';
 import quoteSchema from './quote.schema';
 
 const basicStockSchema = Joi.object().keys({
-    symbol: Joi.string().min(1).max(5).required(),
-    imageUrl: Joi.string().min(1),
-    sector: Joi.string().valid('technology', 'energy').required(),
+    symbol: Joi.string().required(),
+    companyName: Joi.string().required(),
+    sector: Joi.string().required()
+    // imageUrl: Joi.string().optional(),
+    // Joi.string().valid('technology', 'energy', 'biotech').required(),
 });
 
 const stockWithQuoteSchema = basicStockSchema
     .concat(Joi.object().keys({ quote: quoteSchema.required() }));
-
-// const stockWithQuoteSchema = Joi.object().keys({ 
-//     symbol: Joi.string().min(1).max(5).required(),
-//     imageUrl: Joi.string().min(1), 
-//     sector: Joi.string().valid('technology', 'energy').required(),
-//     quote: quoteSchema.required()
-// })
 
 export {
     basicStockSchema,

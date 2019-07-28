@@ -32,9 +32,7 @@ type WatchlistType = IWatchlist & mongoose.Document;
 const WatchlistModel = mongoose.model<WatchlistType>('Watchlist', watchlistSchema)
 
 const findWatchlistSummaries = async (user: UserType) => {
-  console.log('fetching watchlists');
   const watchlistModels = await WatchlistModel.find({ user: user });
-  console.log(`found watchlists: ${watchlistModels}`);
   const summaries = watchlistModels.map((w) => {
     return {
       id: w._id,

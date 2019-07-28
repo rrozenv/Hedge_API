@@ -5,7 +5,7 @@ import UsersController from './controllers/UsersController';
 import StocksController from './controllers/StocksController';
 import PortfoliosController from './controllers/PortfoliosController';
 import WatchlistsController from './controllers/WatchlistController';
-import PositionsController from './reference/PositionsController';
+import PositionsController from './controllers/PositionsController';
 import { PortfolioPositionsController } from './controllers/PortfolioPositionsController';
 import HedgeFundsController from './controllers/HedgeFundsController';
 import { PortfolioPerformanceController } from './controllers/PortfolioPerformanceController';

@@ -2,6 +2,7 @@ import config from 'config';
 import request from 'superagent';
 import { QuoteModel } from '../models/quote.model';
 import IStock from '../interfaces/stock.interface';
+const util = require('util');
 
 class IEXService {
 
@@ -18,9 +19,15 @@ class IEXService {
         const url: string = `${this.baseUrl}/stock/${ticker}/quote`
         const payload = await request
             .get(url)
-            .query({ token: this.token })
+            .query({ token: this.token });
 
-        return payload.body
+        // console.log(util.inspect(payload.body, { showHidden: false, depth: null }));
+
+        return new QuoteModel({
+            symbol: payload.body.symbol,
+            latestPrice: payload.body.latestPrice,
+            changePercent: payload.body.changePercent
+        });
     }
 
     fetchChart = async (ticker: string, range: string) => {
@@ -66,6 +73,7 @@ class IEXService {
                 const symbol = ticker.toUpperCase();
                 const quote = payload.body[symbol].quote;
                 return new QuoteModel({
+                    symbol: symbol,
                     latestPrice: quote.latestPrice,
                     changePercent: quote.changePercent
                 });

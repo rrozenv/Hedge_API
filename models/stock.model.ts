@@ -9,7 +9,7 @@ const stockSchema = new mongoose.Schema({
   },
   companyName: {
     type: String,
-    required: false
+    required: true
   },
   imageUrl: {
     type: String,

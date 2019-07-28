@@ -52,31 +52,34 @@ class WatchlistsController implements IController {
     }
 
     private getWatchlist = async (req: any, res: any) => {
+        // Find watchlist
         const watchlist: any = await WatchlistModel
             .findById(req.params.id)
             .populate('positions');
-
         if (!watchlist) return res.status(400).send(`Watchlist not found for: ${req.params.id}`);
 
-        const updatedPositions = watchlist.positions.map(async (p: any) => {
-            const quote = await this.iex_service.fetchQuote(p.stock.symbol);
-            p.stock.quote = quote
-            await p.save();
-        });
+        // Update all positions in watchlist for latest stock price 
+        const updatedPositions = await Promise.all(
+            watchlist.positions.map(async (p: any) => {
+                const quote = await this.iex_service.fetchQuote(p.stock.symbol);
+                p.stock.quote = quote;
+                await p.save();
+                return p
+            })
+        );
 
         watchlist.positions = updatedPositions
         await watchlist.save();
 
-        const response = {
+        // Send response
+        res.send({
             summary: {
                 id: watchlist.id,
                 name: watchlist.name,
                 tickers: watchlist.tickers
             },
             positions: watchlist.positions
-        };
-
-        res.send(response);
+        });
     }
 
     // MARK: - Get all users watchlists

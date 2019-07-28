@@ -4,7 +4,7 @@ import AppController from './controllers/AppController';
 import UsersController from './controllers/UsersController';
 import StocksController from './controllers/StocksController';
 import PortfoliosController from './controllers/PortfoliosController';
-import WatchlistController from './reference/WatchlistController';
+import WatchlistsController from './controllers/WatchlistController';
 import PositionsController from './reference/PositionsController';
 import { PortfolioPositionsController } from './controllers/PortfolioPositionsController';
 import HedgeFundsController from './controllers/HedgeFundsController';
@@ -18,6 +18,8 @@ new AppController(
     new PortfoliosController(),
     new PortfolioPositionsController(),
     new PortfolioPerformanceController(),
-    new HedgeFundsController()
+    new HedgeFundsController(),
+    new WatchlistsController(),
+    new PositionsController(),
   ],
 );

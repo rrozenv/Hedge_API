@@ -12,7 +12,7 @@ import IPosition from '../interfaces/position.interface';
 import IWatchlist from '../interfaces/watchlist.interface';
 // Models
 import { WatchlistModel } from '../models/watchlist.model';
-import { PositionModel } from '../models/position.model';
+import { UserPositionModel } from '../models/userPosition.model';
 // Services
 import IEXService from '../services/IEXService';
 // Path
@@ -35,14 +35,14 @@ class PositionsController implements IController {
 
   // MARK: - Create Routes
   private initializeRoutes() {
-    this.router.get(`${Path.positions}/:id`, this.getPosition);
-    this.router.post(Path.createPositions, [auth, bodyValidation], this.createPosition);
-    this.router.put(Path.updatePositions, [auth, bodyValidation], this.updatePosition);
+    this.router.get(`${Path.userPositions}/:id`, this.getPosition);
+    this.router.post(Path.createUserPositions, [auth, bodyValidation], this.createPosition);
+    this.router.put(`${Path.updateUserPosition}/:id`, [auth, bodyValidation], this.updatePosition);
   }
 
   // MARK: - Get portfolio by id
   private getPosition = async (req: any, res: any) => {
-    const position = await PositionModel.findById(req.params.id);
+    const position = await UserPositionModel.findById(req.params.id);
     if (!position) return res.status(400).send(`Position not found for: ${req.params.id}`)
     res.send(position);
   };
@@ -58,10 +58,11 @@ class PositionsController implements IController {
     // Create a new position in every watchlist
     const newPositions = await Promise.all(
       watchlists.map(async (w) => {
-        const position = new PositionModel({
+        const position = new UserPositionModel({
           stock: req.body.stock,
           buyPricePerShare: req.body.buyPricePerShare,
-          shares: req.body.shares
+          shares: req.body.shares,
+          watchlistId: w._id
         });
         await position.save();
         w.positions.push(position._id)
@@ -77,11 +78,13 @@ class PositionsController implements IController {
   /// ** ---- PUT ROUTES ---- **
   // MARK: - Update position
   private updatePosition = async (req: any, res: any) => {
-    const position = await PositionModel.findByIdAndUpdate(req.params.id,
+    const position = await UserPositionModel.findByIdAndUpdate(req.params.id,
       {
         buyPricePerShare: req.body.buyPricePerShare,
         shares: req.body.shares
-      }, { new: true });
+      },
+      { new: true }
+    );
 
     if (!position) return res.status(400).send(`Position not found for: ${req.params.id}`);
 

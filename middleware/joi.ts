@@ -15,8 +15,8 @@ export default async (req: any, res: any, next: any) => {
     // Object with keys as route paths and schema required for those routes
     const schemas = {
         [Path.portfolios]: portfolioSchema,
-        [Path.createPositions]: createPositionSchema,
-        [Path.updatePositions]: updatePositionSchema,
+        [Path.createUserPositions]: createPositionSchema,
+        [Path.updateUserPosition]: updatePositionSchema,
         [Path.watchlists]: watchlistSchema,
 
         [Path.hedgeFunds]: createHedgeFundSchema,

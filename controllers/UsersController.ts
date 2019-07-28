@@ -4,6 +4,7 @@ import Joi from 'joi';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import auth from '../middleware/auth';
+import _ from 'lodash';
 // Interfaces
 import IToken from '../interfaces/token.interface'
 import { ISubscription } from '../interfaces/subscription.interface'
@@ -16,6 +17,7 @@ import { SubscriptionModel, SubscriptionType } from '../models/subscription.mode
 import TwilioService from '../services/TwilioService';
 import APIError from '../util/Error';
 import moment = require('moment');
+import { WatchlistModel, WatchlistType, findWatchlistSummaries } from '../models/watchlist.model';
 
 // MARK: - UsersController
 class UsersController implements IController {
@@ -25,7 +27,7 @@ class UsersController implements IController {
   public router = express.Router({});
   private twilio_service: TwilioService;
   private featureFlags = {
-    watchlistEnabled: false,
+    watchlistEnabled: true,
     portfolioMetricsEnabled: false
   }
 
@@ -54,10 +56,14 @@ class UsersController implements IController {
     const user = await UserModel.findById(req.user);
     if (!user) return res.status(400).send(new APIError('Bad Request', 'User does not exist.'));
 
+    // Find watchlist summaries
+    const watchlists = await findWatchlistSummaries(user);
+
     // Send response
     res.send({
       ...user.toJSON(),
-      featureFlags: this.featureFlags
+      featureFlags: this.featureFlags,
+      watchlists: watchlists
     });
   }
 
@@ -72,9 +78,10 @@ class UsersController implements IController {
     // Find user if exists
     const { name, phone, admin } = req.body
     let user = await UserModel.findOne({ phoneNumber: phone });
+    let watchlists: any[] = [];
 
-    // Create new user if doesn't exist 
     if (!user) {
+      // Create new user if doesn't exist 
       user = new UserModel({
         name: name,
         phoneNumber: phone,
@@ -83,6 +90,21 @@ class UsersController implements IController {
         admin: admin
       });
       await user.save();
+
+      // Create initial watchlist 
+      const newWatchlist = new WatchlistModel({
+        name: "Main Watchlist",
+        user: user,
+        tickers: [],
+        positions: []
+      })
+      await newWatchlist.save();
+
+      watchlists = [{
+        id: newWatchlist._id,
+        name: newWatchlist.name,
+        tickers: newWatchlist.tickers
+      }];
     }
 
     // Return user with token in headers
@@ -92,7 +114,8 @@ class UsersController implements IController {
     res.send({
       user: {
         ...user.toJSON(),
-        featureFlags: this.featureFlags
+        featureFlags: this.featureFlags,
+        watchlists: watchlists
       },
       token: tokenData.token,
       tokenExp: tokenData.expiresIn
@@ -110,15 +133,17 @@ class UsersController implements IController {
     let user = await UserModel.findOne({ phoneNumber: phone });
     if (!user) return res.status(400).send({ message: 'User does not exist.' });
 
+    // Find watchlist summaries
+    const watchlists = await findWatchlistSummaries(user);
+
     // Return user with token in headers
     const tokenData = this.createAuthToken(user);
     res.set(this.createHeadersWith(tokenData));
     res.send({
       user: {
         ...user.toJSON(),
-        featureFlags: {
-          watchlistEnabled: false
-        }
+        featureFlags: this.featureFlags,
+        watchlists: watchlists
       },
       token: tokenData.token,
       tokenExp: tokenData.expiresIn

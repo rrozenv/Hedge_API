@@ -10,7 +10,7 @@ import IController from '../interfaces/controller.interface';
 import IPosition from '../interfaces/position.interface';
 import IWatchlist from '../interfaces/watchlist.interface';
 // Models
-import { WatchlistModel } from '../models/watchlist.model';
+import { WatchlistModel, findWatchlistSummaries } from '../models/watchlist.model';
 import { PositionModel } from '../models/position.model';
 // Services
 import IEXService from '../services/IEXService';
@@ -34,8 +34,11 @@ class WatchlistsController implements IController {
 
     // MARK: - Create Routes
     private initializeRoutes() {
-        this.router.get(Path.watchlists, auth, this.getWatchlists);
-        this.router.post(Path.watchlists, [auth, bodyValidation], this.createWatchlist);
+        // this.router.get(Path.watchlists, auth, this.getWatchlists);
+        this.router.get(`${Path.watchlists}/summaries`, [auth], this.getWatchlistSummaries);
+        this.router.get(`${Path.watchlists}/:id`, [auth], this.getWatchlist);
+
+        // this.router.post(Path.watchlists, [auth, bodyValidation], this.createWatchlist);
     }
 
     /// ** ---- GET ROUTES ---- **
@@ -45,6 +48,40 @@ class WatchlistsController implements IController {
             .find({ user: req.user })
             .populate('positions')
 
+        res.send(watchlists);
+    }
+
+    private getWatchlist = async (req: any, res: any) => {
+        const watchlist: any = await WatchlistModel
+            .findById(req.params.id)
+            .populate('positions');
+
+        if (!watchlist) return res.status(400).send(`Watchlist not found for: ${req.params.id}`);
+
+        const updatedPositions = watchlist.positions.map(async (p: any) => {
+            const quote = await this.iex_service.fetchQuote(p.stock.symbol);
+            p.stock.quote = quote
+            await p.save();
+        });
+
+        watchlist.positions = updatedPositions
+        await watchlist.save();
+
+        const response = {
+            summary: {
+                id: watchlist.id,
+                name: watchlist.name,
+                tickers: watchlist.tickers
+            },
+            positions: watchlist.positions
+        };
+
+        res.send(response);
+    }
+
+    // MARK: - Get all users watchlists
+    private getWatchlistSummaries = async (req: any, res: any) => {
+        const watchlists = await findWatchlistSummaries(req.user);
         res.send(watchlists);
     }
 

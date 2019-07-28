@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import IWatchlist from '../interfaces/watchlist.interface';
-// import { positionSchema } from './position.model';
+import { UserType } from './user.model';
 
 const watchlistSchema = new mongoose.Schema({
   name: {
@@ -14,9 +14,15 @@ const watchlistSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  tickers: [
+    {
+      type: String,
+      required: true
+    }
+  ],
   positions: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Position'
+    ref: 'UserPosition'
   }]
 }, {
     timestamps: true
@@ -25,4 +31,18 @@ const watchlistSchema = new mongoose.Schema({
 type WatchlistType = IWatchlist & mongoose.Document;
 const WatchlistModel = mongoose.model<WatchlistType>('Watchlist', watchlistSchema)
 
-export { WatchlistModel, WatchlistType };
+const findWatchlistSummaries = async (user: UserType) => {
+  console.log('fetching watchlists');
+  const watchlistModels = await WatchlistModel.find({ user: user });
+  console.log(`found watchlists: ${watchlistModels}`);
+  const summaries = watchlistModels.map((w) => {
+    return {
+      id: w._id,
+      name: w.name,
+      tickers: w.tickers
+    }
+  });
+  return summaries;
+}
+
+export { WatchlistModel, WatchlistType, findWatchlistSummaries };

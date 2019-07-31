@@ -38,6 +38,7 @@ class PositionsController implements IController {
     this.router.get(`${Path.userPositions}/:id`, [auth, bodyValidation], this.getPosition);
     this.router.put(`${Path.updateUserPosition}/:id`, [auth, bodyValidation], this.updatePosition);
     this.router.post(Path.createUserPositions, [auth, bodyValidation], this.createPosition);
+    this.router.delete(`${Path.deleteUserPosition}/:id`, [auth, bodyValidation], this.deletePosition);
   }
 
   // MARK: - Get portfolio by id
@@ -54,10 +55,6 @@ class PositionsController implements IController {
     const watchlistIds: mongoose.Schema.Types.ObjectId[] = req.body.watchlistIds;
     const watchlists = await WatchlistModel
       .find({ _id: { $in: watchlistIds } });
-
-    console.log(`wathlists: ${watchlists}`);
-
-    console.log(req.body.stock);
 
     // Create a new position in every watchlist
     const newPositions = await Promise.all(
@@ -76,8 +73,6 @@ class PositionsController implements IController {
       })
     );
 
-    console.log(`pos: ${newPositions}`);
-
     // Return positions 
     res.send(newPositions);
   }
@@ -85,7 +80,6 @@ class PositionsController implements IController {
   /// ** ---- PUT ROUTES ---- **
   // MARK: - Update position
   private updatePosition = async (req: any, res: any) => {
-    console.log(`updating: ${req.body}`);
     const position = await UserPositionModel.findByIdAndUpdate(req.params.id,
       {
         buyPricePerShare: req.body.buyPricePerShare,
@@ -95,6 +89,24 @@ class PositionsController implements IController {
     );
 
     if (!position) return res.status(400).send(`Position not found for: ${req.params.id}`);
+
+    res.send(position);
+  }
+
+  /// ** ---- DELTE ROUTES ---- **
+  // MARK: - Delete position
+  private deletePosition = async (req: any, res: any) => {
+    const position = await UserPositionModel.findByIdAndDelete(req.params.id);
+    if (!position) return res.status(400).send(`Position not found for: ${req.params.id}`);
+    const watchlist = await WatchlistModel.findById(position.watchlistId);
+    if (!watchlist) return res.status(400).send(`Watchlist not found for: ${position.watchlistId}`);
+
+    const index = watchlist.tickers.findIndex((t) => {
+      return t.toLowerCase() === position.stock.symbol.toLocaleLowerCase()
+    })
+
+    watchlist.tickers.splice(index, 1);
+    watchlist.save();
 
     res.send(position);
   }

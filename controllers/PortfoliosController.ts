@@ -83,12 +83,29 @@ class PortfoliosController implements IController {
 
     private getPortfolioPositions = async (req: any, res: any) => {
         // Find portfolio posiitons. 
-        const positions = await PortfolioModel
+        const portfolio = await PortfolioModel
             .findById(req.params.id)
             .populate('positions')
 
+        if (!portfolio) return res.status(400).send(
+            new APIError('Bad Request', `Portfolio not found for: ${req.params.id}`)
+        );
+
+        // Update all positions in watchlist for latest stock price 
+        const updatedPositions = await Promise.all(
+            portfolio.positions.map(async (p: any) => {
+                const quote = await this.iex_service.fetchQuote(p.stock.symbol);
+                p.stock.quote = quote;
+                await p.save();
+                return p
+            })
+        );
+
+        portfolio.positions = updatedPositions
+        await portfolio.save();
+
         // Send response.
-        res.send(positions);
+        res.send(portfolio);
     }
 
     private getPortfolioPerformance = async (req: any, res: any) => {

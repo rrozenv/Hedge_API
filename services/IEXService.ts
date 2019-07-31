@@ -21,7 +21,7 @@ class IEXService {
             .get(url)
             .query({ token: this.token });
 
-        // console.log(util.inspect(payload.body, { showHidden: false, depth: null }));
+        console.log(util.inspect(payload.body, { showHidden: false, depth: null }));
 
         return new QuoteModel({
             symbol: payload.body.symbol,

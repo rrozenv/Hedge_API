@@ -28,6 +28,15 @@ const userSchema = new mongoose.Schema({
     type: subscriptionSchema,
     required: true
   },
+  apnToken: {
+    type: String,
+    required: false
+  },
+  notificationsEnabled: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
   admin: Boolean
 }, {
     timestamps: true

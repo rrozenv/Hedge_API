@@ -46,6 +46,10 @@ class UsersController implements IController {
     this.router.post(`${this.path}/login`, this.loginUser);
     this.router.post(`${this.path}/sendCode`, this.sendVerificationCode);
     this.router.post(`${this.path}/validateCode`, this.validateVerificationCode);
+    // this.router.post(`${this.path}/apnsToken`, this.setAPNSToken);
+
+    // PUT 
+    this.router.put(`${this.path}/me`, [auth], this.updateUser);
   }
 
   /// ** ---- GET ROUTES ---- **
@@ -73,7 +77,9 @@ class UsersController implements IController {
   private createUser = async (req: any, res: any) => {
     // Errors
     const { error } = this.validateCreate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    if (error) return res.status(400).send(
+      new APIError('Bad Request', error.details[0].message)
+    );
 
     // Find user if exists
     const { name, phone, admin } = req.body
@@ -126,7 +132,9 @@ class UsersController implements IController {
   private loginUser = async (req: any, res: any) => {
     // Errors
     const { error } = this.validateLogin(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    if (error) return res.status(400).send(
+      new APIError('Bad Request', error.details[0].message)
+    );
 
     // Find user
     const { phone } = req.body
@@ -149,6 +157,51 @@ class UsersController implements IController {
       tokenExp: tokenData.expiresIn
     });
   }
+
+  // MARK: - Update User 
+  private updateUser = async (req: any, res: any) => {
+    const updateFields = {
+      notificationsEnabled: req.body.user.notificationsEnabled,
+      apnToken: req.body.user.apnToken
+    };
+
+    const validUpdateFields = _.omitBy(updateFields, _.isUndefined);
+    const user = await UserModel.findByIdAndUpdate(
+      req.user,
+      validUpdateFields,
+      { new: true }
+    );
+
+    if (!user) return res.status(400).send(
+      new APIError('Bad Request', `User not found for: ${req.params.id}`)
+    );
+
+    // Find watchlist summaries
+    const watchlists = await findWatchlistSummaries(user);
+
+    // Send response
+    res.send({
+      ...user.toJSON(),
+      featureFlags: this.featureFlags,
+      watchlists: watchlists
+    });
+  }
+
+  // MARK: - Login User
+  // private setAPNSToken = async (req: any, res: any) => {
+  //   // Errors
+  //   const { error } = this.validateToken(req.body);
+  //   if (error) return res.status(400).send(
+  //     new APIError('Bad Request', error.details[0].message)
+  //   );
+
+  //   let user = await this.getCurrentUser(req, res);
+  //   user.apnToken = req.body.token
+  //   user.notificationsEnabled = true
+  //   await user.save();
+
+  //   res.send(user);
+  // }
 
   // MARK: - Send phone verification code 
   private sendVerificationCode = async (req: any, res: any) => {
@@ -209,7 +262,7 @@ class UsersController implements IController {
           }
         ]
       },
-      trialExpiration: new Date()
+      trialExpiration: moment().add(1, 'months').toDate()
     })
   }
 

@@ -7,6 +7,7 @@ class Path {
     public static userPositions = '/userPositions'
     public static createUserPositions = '/userPositions/create'
     public static updateUserPosition = '/userPositions/update'
+    public static deleteUserPosition = '/userPositions/delete'
     public static watchlists = '/watchlists'
     public static stocks = '/stocks'
     public static hedgeFunds = '/hedgeFunds'

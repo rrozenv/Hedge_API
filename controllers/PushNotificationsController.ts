@@ -44,7 +44,7 @@ class PushNotificationsController implements IController {
 
     private initializeRoutes() {
         // GET
-        this.router.post(`${Path.notifications}`, [auth], this.sendPushNotificationAll);
+        this.router.post(`${Path.notifications}`, this.sendPushNotificationAll);
     }
 
     /// ** ---- GET ROUTES ---- **

@@ -9,6 +9,7 @@ import PositionsController from './controllers/PositionsController';
 import { PortfolioPositionsController } from './controllers/PortfolioPositionsController';
 import HedgeFundsController from './controllers/HedgeFundsController';
 import { PortfolioPerformanceController } from './controllers/PortfolioPerformanceController';
+import { PushNotificationsController } from './controllers/PushNotificationsController';
 
 new AppController(
   mongoose,
@@ -21,5 +22,6 @@ new AppController(
     new HedgeFundsController(),
     new WatchlistsController(),
     new PositionsController(),
+    new PushNotificationsController()
   ],
 );

@@ -11,6 +11,7 @@ class Path {
     public static watchlists = '/watchlists'
     public static stocks = '/stocks'
     public static hedgeFunds = '/hedgeFunds'
+    public static notifications = '/notifications'
 }
 
 export default Path

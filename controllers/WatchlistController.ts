@@ -61,7 +61,10 @@ class WatchlistsController implements IController {
         // Update all positions in watchlist for latest stock price 
         const updatedPositions = await Promise.all(
             watchlist.positions.map(async (p: any) => {
-                const quote = await this.iex_service.fetchQuote(p.stock.symbol);
+                const quote = await this.iex_service
+                    .fetchQuote(p.stock.symbol)
+                    .catch((e) => console.log(e));
+
                 p.stock.quote = quote;
                 await p.save();
                 return p

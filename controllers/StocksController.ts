@@ -1,5 +1,7 @@
 // Dependencies
 import express from 'express';
+import Joi from 'joi';
+import moment from 'moment';
 // Middleware
 import auth from '../middleware/auth';
 import validateObjectId from '../middleware/validateObjectId';
@@ -31,7 +33,8 @@ class StocksController implements IController {
   // MARK: - Create routes
   private initializeRoutes() {
     this.router.get(`${Path.stocks}/:ticker`, [auth], this.getStockQuote);
-    this.router.get(`${Path.stocks}/:ticker/performance/:range`, [auth], this.getStockChart);
+    this.router.get(`${Path.stocks}/:ticker/performance/today`, [auth], this.getCurrentDayStockChart);
+    this.router.get(`${Path.stocks}/:ticker/performance/:range`, [auth], this.getHistoricalStockChart);
     this.router.get(`${Path.stocks}/:id`, [auth, validateObjectId], this.getPrimaryStockData);
   }
 
@@ -50,38 +53,115 @@ class StocksController implements IController {
     }
   };
 
-  private getStockChart = async (req: any, res: any) => {
-    try {
-      const chartData: any[] = await this.iex_service.fetchChart(req.params.ticker, req.params.range);
-      const filteredChartData = chartData.filter(item => item.close != undefined);
-      const chartPoints = filteredChartData.map((item) => {
-        return {
-          xValue: item.date,
-          yValue: item.close
-        }
-      })
+  private getCurrentDayStockChart = async (req: any, res: any) => {
 
-      const firstChartPoint = filteredChartData[0]
-      const lastChartPoint = filteredChartData[filteredChartData.length - 1]
-      const percentageReturn = (lastChartPoint.close - firstChartPoint.open) / firstChartPoint.open
+    let [quote, chart] = await Promise.all([
+      this.iex_service.fetchQuote(req.params.ticker),
+      this.iex_service.fetchCurrentDayChart(req.params.ticker)
+    ])
 
-      res.send({
-        startDate: firstChartPoint.date,
-        endDate: lastChartPoint.date,
-        range: req.params.range,
-        percentageReturn: percentageReturn,
-        dollarValue: lastChartPoint!.close,
-        chart: { points: chartPoints }
+    const chartData: any[] = chart
+    let chartPoints = chartData.reduce((result, item) => {
+      const { error } = this.validateCurrentDayChartResponse(item);
+      if (error == undefined) {
+        result.push({
+          xValue: item.label,
+          yValue: item.close,
+          date: item.date
+        });
+      }
+      return result;
+    }, []);
+
+    const firstChartPoint = chartPoints[0]
+    chartPoints.splice(0, 0, {
+      xValue: "9:30 AM",
+      yValue: quote.close,
+      date: firstChartPoint.date
+    });
+
+    const lastChartPoint = chartPoints[chartPoints.length - 1]
+    const percentageReturn = (lastChartPoint.yValue - quote.close) / quote.close
+    const priceChange = lastChartPoint.yValue - quote.close
+
+    const marketClose = "4:00 PM"
+    const currentTime = moment(lastChartPoint.xValue, "hh:mm A");
+    const closeTime = moment(marketClose, "hh:mm A");
+
+    var diff = moment.duration(moment(closeTime).diff(moment(currentTime)));
+    const minutesUntilClose = diff.asMinutes() / 5;
+
+    for (var i = 0; i < minutesUntilClose; i++) {
+      chartPoints.push({
+        xValue: currentTime.add(5, 'm').format('hh:mm A').toString(),
+        yValue: 0,
+        date: lastChartPoint.date
       });
-    } catch (error) {
-      res.status(400).send(
-        new APIError(
-          'Bad Request',
-          `Request failed for stock: ${req.params.ticker}`
-        )
-      );
     }
+
+    res.send({
+      startDate: firstChartPoint.date,
+      endDate: lastChartPoint.date,
+      range: 'day',
+      percentageReturn: percentageReturn,
+      dollarValue: priceChange,
+      chart: { points: chartPoints }
+    });
+  }
+
+  private validateCurrentDayChartResponse = (res: any) => {
+    const schema = Joi.object().keys({
+      label: Joi.string().required(),
+      close: Joi.number().required(),
+      date: Joi.string().required()
+    }).pattern(/./, Joi.any());
+
+    return Joi.validate(res, schema);
+  }
+
+  private getHistoricalStockChart = async (req: any, res: any) => {
+    const range = req.params.range;
+    const chartData: any[] = await this.iex_service.fetchHistoricalChart(
+      req.params.ticker,
+      range
+    );
+
+    const chartPoints = chartData.reduce((result, item) => {
+      const { error } = this.validateHistoricalChartResponse(item);
+      if (error == undefined) {
+        result.push({
+          xValue: item.date,
+          yValue: item.close,
+          changeOverTime: item.changeOverTime
+        });
+      }
+      return result;
+    }, []);
+
+    const firstChartPoint = chartPoints[0]
+    const lastChartPoint = chartPoints[chartPoints.length - 1]
+    const percentageReturn = (lastChartPoint.yValue - firstChartPoint.yValue) / firstChartPoint.yValue
+    const priceChange = lastChartPoint.yValue - firstChartPoint.yValue
+
+    res.send({
+      startDate: firstChartPoint.xValue,
+      endDate: lastChartPoint.xValue,
+      range: range,
+      percentageReturn: percentageReturn,
+      dollarValue: priceChange,
+      chart: { points: chartPoints }
+    });
   };
+
+  private validateHistoricalChartResponse = (res: any) => {
+    const schema = Joi.object().keys({
+      changeOverTime: Joi.number().required(),
+      close: Joi.number().required(),
+      date: Joi.string().required()
+    }).pattern(/./, Joi.any());
+
+    return Joi.validate(res, schema);
+  }
 
   // MARK: - Get portfolio by id
   private getPrimaryStockData = async (req: any, res: any) => {

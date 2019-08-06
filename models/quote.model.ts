@@ -6,6 +6,12 @@ const quoteSchema = new mongoose.Schema({
         type: String,
         required: false
     },
+    close: {
+        type: Number,
+        required: true,
+        minlength: 0,
+        maxlength: 50
+    },
     latestPrice: {
         type: Number,
         required: true,

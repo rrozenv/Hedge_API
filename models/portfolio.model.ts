@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 import IPortfolio from '../interfaces/portfolio.interface';
 import { stockSchema } from './stock.model';
-import { positionSchema } from './position.model';
+import { PositionModel, positionSchema } from './position.model';
+import { HedgeFundPositionModel } from './hedgeFundPosition.model';
+import { DailyPortfolioPerformanceModel } from './dailyPortfolioPerformance.model';
 
 const portfolioSchema = new mongoose.Schema({
   name: {
@@ -35,4 +37,27 @@ const portfolioSchema = new mongoose.Schema({
 type PortfolioType = IPortfolio & mongoose.Document;
 const PortfolioModel = mongoose.model<PortfolioType>('Portfolio', portfolioSchema)
 
-export { PortfolioModel, PortfolioType };
+const deleteByName = async (name: string) => {
+  const existingPortfolio = await PortfolioModel.findOne({ name: name });
+  if (existingPortfolio) {
+    await Promise.all(
+      existingPortfolio.positions.map(async id => {
+        const position = await PositionModel.findById(id);
+        if (position) {
+          await Promise.all(
+            position.hedgeFundPositions.map(async h => {
+              await HedgeFundPositionModel.findByIdAndDelete(h);
+            })
+          );
+
+          await position.remove();
+        }
+      })
+    );
+
+    await DailyPortfolioPerformanceModel.deleteMany({ portfolio: existingPortfolio._id });
+    await existingPortfolio.remove();
+  };
+}
+
+export { PortfolioModel, PortfolioType, deleteByName };

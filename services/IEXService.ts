@@ -2,6 +2,8 @@ import config from 'config';
 import request from 'superagent';
 import { QuoteModel } from '../models/quote.model';
 import IStock from '../interfaces/stock.interface';
+import Joi from 'joi';
+import APIError from '../util/Error';
 const util = require('util');
 
 class IEXService {
@@ -21,16 +23,28 @@ class IEXService {
             .get(url)
             .query({ token: this.token });
 
-        console.log(util.inspect(payload.body, { showHidden: false, depth: null }));
+        const { error } = this.validateQuoteResponse(payload.body);
+        if (error) throw new APIError('Bad Request', error.details[0].message);
+
+        const { symbol, previousClose, latestPrice, changePercent } = payload.body;
 
         return new QuoteModel({
-            symbol: payload.body.symbol,
-            latestPrice: payload.body.latestPrice,
-            changePercent: payload.body.changePercent
+            symbol: symbol,
+            close: previousClose,
+            latestPrice: latestPrice,
+            changePercent: changePercent
         });
     }
 
-    fetchChart = async (ticker: string, range: string) => {
+    fetchCurrentDayChart = async (ticker: string) => {
+        const payload = await request
+            .get(`${this.baseUrl}/stock/${ticker}/intraday-prices`)
+            .query({ token: this.token });
+
+        return payload.body
+    }
+
+    fetchHistoricalChart = async (ticker: string, range: string) => {
         const payload = await request
             .get(`${this.baseUrl}/stock/${ticker}/chart/${this.formatRange(range)}`)
             .query({ token: this.token });
@@ -74,6 +88,7 @@ class IEXService {
                 const quote = payload.body[symbol].quote;
                 return new QuoteModel({
                     symbol: symbol,
+                    close: quote.close,
                     latestPrice: quote.latestPrice,
                     changePercent: quote.changePercent
                 });
@@ -100,6 +115,17 @@ class IEXService {
             throw `Failed to fetch data for ${stocks}`
         }
     };
+
+    private validateQuoteResponse = (quote: any) => {
+        const schema = Joi.object().keys({
+            symbol: Joi.string().required(),
+            previousClose: Joi.number().required(),
+            latestPrice: Joi.number().required(),
+            changePercent: Joi.number().required()
+        }).pattern(/./, Joi.any());
+
+        return Joi.validate(quote, schema);
+    }
 
 }
 

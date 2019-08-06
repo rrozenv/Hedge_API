@@ -187,22 +187,6 @@ class UsersController implements IController {
     });
   }
 
-  // MARK: - Login User
-  // private setAPNSToken = async (req: any, res: any) => {
-  //   // Errors
-  //   const { error } = this.validateToken(req.body);
-  //   if (error) return res.status(400).send(
-  //     new APIError('Bad Request', error.details[0].message)
-  //   );
-
-  //   let user = await this.getCurrentUser(req, res);
-  //   user.apnToken = req.body.token
-  //   user.notificationsEnabled = true
-  //   await user.save();
-
-  //   res.send(user);
-  // }
-
   // MARK: - Send phone verification code 
   private sendVerificationCode = async (req: any, res: any) => {
     const { via, country_code, phone_number } = req.body

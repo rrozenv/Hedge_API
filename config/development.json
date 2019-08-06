@@ -6,5 +6,8 @@
     "iexKey": "iex12345",
     "jwtKey": "jwt12345",
     "twilioKey": "twil12345",
-    "skipAuth": true
+    "skipAuth": true,
+    "apnKeyId": "",
+    "appleTeamId": "",
+    "iosAppBundleId": "mobi.hedge.dev"
 }

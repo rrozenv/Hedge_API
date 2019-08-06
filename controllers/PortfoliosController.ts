@@ -9,7 +9,7 @@ import auth from '../middleware/auth';
 import validateObjectId from '../middleware/validateObjectId';
 import bodyValidation from '../middleware/joi';
 // Models
-import { PortfolioModel, PortfolioType } from '../models/portfolio.model';
+import { PortfolioModel, PortfolioType, deleteByName } from '../models/portfolio.model';
 import { DailyPortfolioPerformanceModel, DailyPortfolioPerformanceType } from '../models/dailyPortfolioPerformance.model';
 import { StockModel, StockType } from '../models/stock.model';
 import { PositionModel } from '../models/position.model';
@@ -18,10 +18,11 @@ import IController from '../interfaces/controller.interface';
 import IStock from '../interfaces/stock.interface';
 import IPortfolio from '../interfaces/portfolio.interface';
 import IDailyPortfolioPerformance from '../interfaces/dailyPortfolioPerformance.interface';
+import IPerformance from '../interfaces/performance.interface';
 // Services
 import IEXService from '../services/IEXService';
 import APIError from '../util/Error';
-import { createChartPerformanceResponse } from './PortfolioPerformanceController'
+import { createChartPerformanceResponse, createChartPerformanceModels } from './PortfolioPerformanceController'
 import { createPosition } from './PortfolioPositionsController'
 
 // Path
@@ -64,21 +65,25 @@ class PortfoliosController implements IController {
         // Create response 
         const modifiedPortfolios = await Promise.all(
             portfolios.map(async (port) => {
-                const performance = await createChartPerformanceResponse(port, req.query.range)
-                return {
-                    id: port._id,
-                    name: port.name,
-                    description: port.description,
-                    rebalanceDate: port.rebalanceDate,
-                    benchmarkType: port.benchmarkType,
-                    performance: performance,
-                    positions: port.positions
-                }
+                return await this.createPortfolioResponse(port, req.query.range)
             })
         );
 
         // Send response 
         res.send({ portfolios: modifiedPortfolios });
+    }
+
+    private createPortfolioResponse = async (port: PortfolioType, range: string) => {
+        const performance = await createChartPerformanceResponse(port, range);
+        return {
+            id: port._id,
+            name: port.name,
+            description: port.description,
+            rebalanceDate: port.rebalanceDate,
+            benchmarkType: port.benchmarkType,
+            performance: performance,
+            positions: port.positions
+        }
     }
 
     private getPortfolioPositions = async (req: any, res: any) => {
@@ -94,7 +99,10 @@ class PortfoliosController implements IController {
         // Update all positions in watchlist for latest stock price 
         const updatedPositions = await Promise.all(
             portfolio.positions.map(async (p: any) => {
-                const quote = await this.iex_service.fetchQuote(p.stock.symbol);
+                const quote = await this.iex_service
+                    .fetchQuote(p.stock.symbol)
+                    .catch((e) => console.log(e));
+                console.log(quote);
                 p.stock.quote = quote;
                 await p.save();
                 return p
@@ -127,10 +135,14 @@ class PortfoliosController implements IController {
     // MARK: - Create portfolio
     private createPortfolio = async (req: any, res: any) => {
         const name: string = req.body.name;
+        await deleteByName(name);
+
         const description: string = req.body.description;
         const rebalanceDate: string = req.body.rebalanceDate;
+        console.log(rebalanceDate);
         const benchmarkType: string = req.body.benchmarkType;
         const positions: any[] = req.body.positions;
+        const chartPoints: IPerformance[] = req.body.chartPoints;
 
         const positionModels = await Promise.all(
             positions.map(async pos => {
@@ -146,9 +158,22 @@ class PortfoliosController implements IController {
             positions: positionModels
         })
 
-        await portfolio.save();
+        const savedPort: any = await portfolio.save();
+        await createChartPerformanceModels(savedPort, chartPoints);
 
-        res.send(portfolio);
+        const performance: any = await createChartPerformanceResponse(savedPort, 'all');
+        const response = {
+            id: savedPort._id,
+            name: savedPort.name,
+            description: savedPort.description,
+            rebalanceDate: savedPort.rebalanceDate,
+            benchmarkType: savedPort.benchmarkType,
+            performance: performance,
+            positions: savedPort.positions.map((p: any) => p._id)
+        }
+
+        console.log(response);
+        res.send(response);
     }
 
     // MARK: - Update portfolio 

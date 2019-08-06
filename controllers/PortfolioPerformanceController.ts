@@ -16,16 +16,12 @@ import { BenchmarkPerformanceModel } from '../models/benchmarkPerformance.model'
 import IController from '../interfaces/controller.interface';
 import IStock from '../interfaces/stock.interface';
 import IPortfolio from '../interfaces/portfolio.interface';
+import IPerformance from '../interfaces/performance.interface';
 // Services
 import IEXService from '../services/IEXService';
 import APIError from '../util/Error';
 // Path
 import Path from '../util/Path';
-
-interface IPerformance {
-    date: Date;
-    performance: number;
-};
 
 // MARK: - PortfoliosController
 class PortfolioPerformanceController implements IController {
@@ -43,12 +39,13 @@ class PortfolioPerformanceController implements IController {
     }
 
     private initializeRoutes() {
+        // [auth, validateObjectId] 
         // GET 
-        this.router.get(`${Path.portfolios}/:id/chart`, [auth, validateObjectId], this.getPerformance);
+        this.router.get(`${Path.portfolios}/:id/chart`, this.getPerformance);
 
         // POST
-        this.router.post(`${Path.portfolios}/:id/chart`, [auth, validateObjectId], this.createPerformance);
-        this.router.post(`${Path.benchmarks}/:type/chart`, [auth], this.createBenchmarkPerformance);
+        this.router.post(`${Path.portfolios}/:id/chart`, this.createPerformance);
+        this.router.post(`${Path.benchmarks}/:type/chart`, this.createBenchmarkPerformance);
     }
 
     /// ** ---- GET ROUTES ---- **
@@ -79,51 +76,79 @@ class PortfolioPerformanceController implements IController {
             new APIError('Bad Request', `Portfolio not found for: ${req.params.id}`)
         );
 
-        // Create performance points.
-        const chartPoints: any[] = req.body.chartPoints
-        const performanceModels = await Promise.all(
-            chartPoints.map(async point => {
-                const model = new DailyPortfolioPerformanceModel({
-                    portfolio: portfolio._id,
-                    date: point.date,
-                    performance: point.performance
-                });
-                await model.save();
-                return model;
-            })
+        // Create performance models.
+        await createChartPerformanceModels(
+            portfolio,
+            req.body.chartPoints
+        );
+
+        const performanceResponse = await createChartPerformanceResponse(
+            portfolio,
+            'all'
         );
 
         // Send response. 
-        res.send(performanceModels);
+        res.send(performanceResponse);
     }
 
     // MARK: - Create benchmark performance for type. 
     private createBenchmarkPerformance = async (req: any, res: any) => {
-        // Create benchmark chart points.
-        const chartPoints: any[] = req.body.chartPoints
-        const performanceModels = await Promise.all(
-            chartPoints.map(async point => {
-                const model = new BenchmarkPerformanceModel({
-                    type: req.params.type,
-                    date: point.date,
-                    performance: point.performance
-                });
-                await model.save();
-                return model;
-            })
+        await BenchmarkPerformanceModel.deleteMany({ type: req.params.type });
+
+        await createBenchmarkPerformanceModels(
+            req.params.type,
+            req.body.chartPoints
+        );
+
+        const benchmarkPerformance = await createBenchmarkPerformanceResponse(
+            req.params.type,
+            moment().toDate()
         );
 
         // Send response. 
-        res.send(performanceModels);
+        res.send(benchmarkPerformance);
     }
 
+}
+
+const createChartPerformanceModels = async (portfolio: IPortfolio, points: IPerformance[]) => {
+    // Create performance points.
+    const performanceModels = await Promise.all(
+        points.map(async point => {
+            const model = new DailyPortfolioPerformanceModel({
+                portfolio: portfolio._id,
+                date: point.date,
+                performance: point.performance
+            });
+            await model.save();
+            return model;
+        })
+    );
+
+    return performanceModels
+}
+
+const createBenchmarkPerformanceModels = async (type: string, points: IPerformance[]) => {
+    // Create benchmark chart points.
+    const performanceModels = await Promise.all(
+        points.map(async point => {
+            const model = new BenchmarkPerformanceModel({
+                type: type,
+                date: point.date,
+                performance: point.performance
+            });
+            await model.save();
+            return model;
+        })
+    );
+
+    return performanceModels;
 }
 
 const createChartPerformanceResponse = async (portfolio: PortfolioType, range: string) => {
     const startDate = findStartDate(range);
     const endDate = moment().toDate();
-    console.log(`Start date: ${startDate}`);
-    console.log(`End date: ${endDate}`);
+
     const query = {
         portfolio: portfolio,
         date: {
@@ -189,21 +214,35 @@ const createBenchmarkPerformanceResponse = async (type: string, endDate: Date, s
 }
 
 const createChartPoints = (returnValues: IPerformance[]): any => {
-    let sum = 1000
-    return returnValues.map((val) => {
-        sum = sum * (1 + val.performance)
+    // let sum = 1000
+    const points = returnValues.map((val) => {
+        // sum = sum * (1 + val.performance)
         return {
             xValue: val.date.toJSON(),
-            yValue: sum - 1000
+            yValue: val.performance // sum - 1000
         }
     });
+
+    const firstPoint = [{
+        xValue: moment().toJSON(),
+        yValue: 1000
+    }]
+
+    return firstPoint.concat(points);
 }
 
 const calculatePercentageReturn = (returnValues: IPerformance[]): number => {
-    const endingValue = returnValues.reduce((sum, val) => {
-        return sum * (1 + val.performance)
-    }, 1);
-    return endingValue - 1
+    if (returnValues.length < 1) return 0
+    if (returnValues.length == 1) return returnValues[0].performance
+
+    const lastValue = returnValues[returnValues.length - 1].performance
+    const firstValue = returnValues[0].performance
+
+    return (lastValue - firstValue) / firstValue
+    // const endingValue = returnValues.reduce((sum, val) => {
+    //     return sum * (1000 + val.performance)
+    // }, 1);
+    // return endingValue - 1000
 }
 
-export { PortfolioPerformanceController, createChartPerformanceResponse }
+export { PortfolioPerformanceController, createChartPerformanceResponse, createChartPerformanceModels }

@@ -1,5 +1,6 @@
 const config = require('config');
 var apn = require('apn');
+const util = require('util');
 
 // Dependencies
 import express from 'express';
@@ -73,7 +74,7 @@ class PushNotificationsController implements IController {
                 note.payload = { 'messageFrom': 'Hegde' };
                 note.topic = this.bundleId;
                 const result = await this.apnProvider.send(note, user.apnToken);
-                console.log(`Notif result: ${result}`);
+                console.log(util.inspect(result, { showHidden: false, depth: null }));
                 return note
             })
         );

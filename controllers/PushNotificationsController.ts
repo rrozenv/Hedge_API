@@ -30,13 +30,14 @@ class PushNotificationsController implements IController {
     // MARK: - Constructor
     constructor() {
         this.log = debug('controller:notifications');
+        const production = !(config.get('skipAuth'));
         var options = {
             token: {
                 key: "apns.p8",
                 keyId: config.get('apnKeyId'),
                 teamId: config.get('appleTeamId')
             },
-            production: false
+            production: production
         };
         this.apnProvider = new apn.Provider(options);
         this.bundleId = config.get('iosAppBundleId');

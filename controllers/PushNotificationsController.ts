@@ -72,7 +72,8 @@ class PushNotificationsController implements IController {
                 note.alert = title;
                 note.payload = { 'messageFrom': 'Hegde' };
                 note.topic = this.bundleId;
-                await this.apnProvider.send(note, user.apnToken);
+                const result = await this.apnProvider.send(note, user.apnToken);
+                console.log(`Notif result: ${result}`);
                 return note
             })
         );

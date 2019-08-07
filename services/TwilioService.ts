@@ -34,7 +34,8 @@ class TwilioService {
         const payload = await request
             .get(`${baseUrl}${verifyCodePath}`)
             .query({ phone_number: phoneNumber, country_code: countryCode, verification_code: code })
-            .set('X-Authy-API-Key', 'hy73bYkNMyWpgCFAWaKGCDDlFDkTxy3u');
+            .set('X-Authy-API-Key', 'hy73bYkNMyWpgCFAWaKGCDDlFDkTxy3u')
+            .set('Accept', 'application/json');
 
         return {
             message: payload.body.message,

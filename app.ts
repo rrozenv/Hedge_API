@@ -1,3 +1,4 @@
+require('newrelic');
 const mongoose = require('mongoose');
 mongoose.plugin(require('@meanie/mongoose-to-json'));
 import AppController from './controllers/AppController';

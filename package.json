@@ -12,7 +12,7 @@
     "staging": "nodemon --watch './**/*.ts' --exec 'ts-node' ./app.ts"
   },
   "engines": {
-    "node": "8.9.4"
+    "node": "10.16.2"
   },
   "author": "",
   "license": "ISC",

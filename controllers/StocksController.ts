@@ -2,12 +2,14 @@
 import express from 'express';
 import Joi from 'joi';
 import moment from 'moment';
+import _ from 'lodash';
 // Middleware
 import auth from '../middleware/auth';
 import validateObjectId from '../middleware/validateObjectId';
 // Interfaces
 import IController from '../interfaces/controller.interface';
 // Models
+import { PortfolioModel, PortfolioType } from '../models/portfolio.model';
 import { StockModel } from '../models/stock.model';
 import { WatchlistModel } from '../models/watchlist.model';
 // Services
@@ -32,6 +34,7 @@ class StocksController implements IController {
 
   // MARK: - Create routes
   private initializeRoutes() {
+    this.router.get(`${Path.stocks}/news`, this.getStockNewsDashboard);
     this.router.get(`${Path.stocks}/:ticker`, [auth], this.getStockQuote);
     this.router.get(`${Path.stocks}/:ticker/performance/today`, [auth], this.getCurrentDayStockChart);
     this.router.get(`${Path.stocks}/:ticker/performance/:range`, [auth], this.getHistoricalStockChart);
@@ -48,6 +51,37 @@ class StocksController implements IController {
         new APIError(
           'Bad Request',
           `Request failed for stock: ${req.params.ticker}`
+        )
+      );
+    }
+  };
+
+  private getStockNewsDashboard = async (req: any, res: any) => {
+    const portfolios = await PortfolioModel
+      .find()
+      .populate('positions');
+
+    const tickers = portfolios.map((p: any) => {
+      return p.positions.map((pos: any) => {
+        return pos.stock.symbol
+      });
+    });
+
+    const uniqueTickers = [...new Set(_.flatten(tickers))];
+
+    try {
+      const articles = await this.iex_service.fetchNews(uniqueTickers);
+      const sorted = _.compact(articles).sort((a, b) => b.date - a.date);
+
+      res.send({
+        articles: sorted.splice(0, 50) // _.sampleSize(sorted, 50)
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(400).send(
+        new APIError(
+          'Bad Request',
+          `Failed to fetch news dashboard`
         )
       );
     }

@@ -18,7 +18,7 @@ const stockSchema = new mongoose.Schema({
   sector: {
     type: String,
     required: true,
-    enum: ['technology', 'energy', 'healthcare', 'biotech'],
+    // enum: ['technology', 'energy', 'healthcare', 'biotech'],
     maxlength: 10000
   },
   quote: {

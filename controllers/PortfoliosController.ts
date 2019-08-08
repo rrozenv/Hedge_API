@@ -139,7 +139,6 @@ class PortfoliosController implements IController {
 
         const description: string = req.body.description;
         const rebalanceDate: string = req.body.rebalanceDate;
-        console.log(rebalanceDate);
         const benchmarkType: string = req.body.benchmarkType;
         const positions: any[] = req.body.positions;
         const chartPoints: IPerformance[] = req.body.chartPoints;
@@ -172,7 +171,6 @@ class PortfoliosController implements IController {
             positions: savedPort.positions.map((p: any) => p._id)
         }
 
-        console.log(response);
         res.send(response);
     }
 

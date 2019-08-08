@@ -53,7 +53,9 @@ class PushNotificationsController implements IController {
     // MARK: - Get Positions for Hedge Fund
     private sendPushNotificationAll = async (req: any, res: any) => {
         await this.sendNotificationAllUsers(req.body.title, req.body.body);
-        res.send('Success');
+        res.send({
+            message: 'Success'
+        });
     }
 
     sendNotificationAllUsers = async (title?: string, body?: string) => {
@@ -62,8 +64,6 @@ class PushNotificationsController implements IController {
                 apnToken: { $ne: null },
                 notificationsEnabled: true
             });
-
-        console.log(users);
 
         await Promise.all(
             users.map(async (user) => {

@@ -4,6 +4,7 @@ import { QuoteModel } from '../models/quote.model';
 import IStock from '../interfaces/stock.interface';
 import Joi from 'joi';
 import APIError from '../util/Error';
+import _ from 'lodash';
 const util = require('util');
 
 class IEXService {
@@ -78,25 +79,56 @@ class IEXService {
     fetchQuotes = async (tickers: string[], types: string[]) => {
         if (tickers.length == 0) throw 'Tickers length is 0';
 
-        try {
-            const payload = await request
-                .get(`${config.get('iex-base-url')}/stock/market/batch`)
-                .query({ types: types.join(','), symbols: tickers.join(',') });
+        const payload = await request
+            .get(`${this.baseUrl}/stock/market/batch`)
+            .query({ types: types.join(','), symbols: tickers.join(',') });
 
-            return tickers.map((ticker) => {
-                const symbol = ticker.toUpperCase();
-                const quote = payload.body[symbol].quote;
-                return new QuoteModel({
-                    symbol: symbol,
-                    close: quote.close,
-                    latestPrice: quote.latestPrice,
-                    changePercent: quote.changePercent
-                });
+        return tickers.map((ticker) => {
+            const symbol = ticker.toUpperCase();
+            const quote = payload.body[symbol].quote;
+            return new QuoteModel({
+                symbol: symbol,
+                close: quote.close,
+                latestPrice: quote.latestPrice,
+                changePercent: quote.changePercent
             });
-        } catch (err) {
-            console.log(`QUOTES ERROR ${err}`);
-            throw `Failed to fetch data for ${tickers.join(',')}`
-        }
+        });
+    }
+
+    fetchNews = async (tickers: string[]) => {
+        if (tickers.length == 0) throw 'Tickers length is 0';
+
+        const payload = await request
+            .get(`${this.baseUrl}/stock/market/batch`)
+            .query({ types: 'news', symbols: tickers.join(',') })
+            .query({ token: this.token });
+
+        const twoDArr = tickers.map((ticker) => {
+            const symbol = ticker.toUpperCase();
+            const info = payload.body[symbol];
+            if (!info) return undefined;
+            if (!info.news) return undefined;
+
+            // const { error } = this.validateQuoteResponse(payload.body);
+            // if (error) return undefined
+
+            return info.news.map((article: any) => {
+                return {
+                    ticker: symbol,
+                    date: new Date(article.datetime),
+                    headline: article.headline,
+                    source: article.source,
+                    url: article.url,
+                    summary: article.summary,
+                    related: article.related,
+                    image: article.image,
+                    lang: article.lang,
+                    hasPaywall: article.hasPaywall
+                }
+            });
+        });
+
+        return _.flatten(twoDArr)
     }
 
     // MARK: - Fetchs quotes for all given stocks 
@@ -125,6 +157,20 @@ class IEXService {
         }).pattern(/./, Joi.any());
 
         return Joi.validate(quote, schema);
+    }
+
+    private validateArticleResponse = (article: any) => {
+        const schema = Joi.object().keys({
+            ticker: Joi.string().required(),
+            datetime: Joi.number().required(),
+            headline: Joi.string().required(),
+            source: Joi.string().required(),
+            url: Joi.string().required(),
+            summary: Joi.string().required(),
+            image: Joi.string().required()
+        }).pattern(/./, Joi.any());
+
+        return Joi.validate(article, schema);
     }
 
 }

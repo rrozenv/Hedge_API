@@ -28,7 +28,7 @@
     "fawn": "^2.1.5",
     "joi": "^14.3.1",
     "jsonwebtoken": "^8.5.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "moment": "^2.24.0",
     "mongoose": "^5.4.19",
     "superagent": "^4.1.0"
